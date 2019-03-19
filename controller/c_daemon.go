@@ -86,7 +86,7 @@ var Daemon = &cobra.Command{
 
 				hlp.WAConn.AddHandler(&wah)
 			} else if !hlp.WASessionExist(file) && hlp.WAConn != nil {
-				_ = hlp.WASessionLogout(hlp.WAConn, file)
+				_, _ = hlp.WAConn.Disconnect()
 				hlp.WAConn = nil
 
 				log.Println("logged out session not valid")
