@@ -1,6 +1,6 @@
 # Go WhatsApp Implementation in Command-Line Interface (CLI)
 
-This repository contains example of implementation [dimaskiddo/go-whatsapp](https://github.com/dimaskiddo/go-whatsapp) package. This example is using a codebase from [dimaskiddo/go-whatsapp-cli](https://github.com/dimaskiddo/go-whatsapp-cli).
+This repository contains example of implementation [dimaskiddo/go-whatsapp](https://github.com/dimaskiddo/go-whatsapp) package. This example is using a codebase from [dimaskiddo/codebase-go-cli](https://github.com/dimaskiddo/codebase-go-cli).
 
 ## Getting Started
 
