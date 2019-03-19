@@ -1,0 +1,10 @@
+{
+  "data": {
+    "hello": {
+      "res": "Hai, How are you?"
+    },
+    "intro": {
+      "res": "Hello my name is KiddoBot (^.^)\nNice to meet you"
+    }
+  }
+}

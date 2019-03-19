@@ -1,0 +1,4 @@
+build/*
+!build/data.json
+vendor
+!*.gitkeep
