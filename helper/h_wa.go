@@ -3,8 +3,10 @@ package helper
 import (
 	"encoding/gob"
 	"errors"
+	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -14,25 +16,33 @@ import (
 	whatsapp "github.com/dimaskiddo/go-whatsapp"
 )
 
+var WACmd []*gabs.Container
+var WAConn *whatsapp.Conn
+
 type WAHandler struct {
-	WAConn        *whatsapp.Conn
-	JID           string
-	StartTime     uint64
+	SessionConn   *whatsapp.Conn
+	SessionJID    string
+	SessionFile   string
+	SessionStart  uint64
 	ReconnectTime int
-	TestMode      bool
+	IsTest        bool
 }
 
 func (wah *WAHandler) HandleError(err error) {
 	_, eMatch := err.(*whatsapp.ErrConnectionFailed)
 	if eMatch {
-		log.Println("error connection: connection closed will reconnecting after " + strconv.Itoa(wah.ReconnectTime) + " seconds")
+		if WASessionExist(wah.SessionFile) && wah.SessionConn != nil {
+			log.Println("error connection: connection closed unexpetedly, reconnecting after " + strconv.Itoa(wah.ReconnectTime) + " seconds")
 
-		wah.StartTime = uint64(time.Now().Unix())
-		<-time.After(time.Duration(wah.ReconnectTime) * time.Second)
+			wah.SessionStart = uint64(time.Now().Unix())
+			<-time.After(time.Duration(wah.ReconnectTime) * time.Second)
 
-		err := wah.WAConn.Restore()
-		if err != nil {
-			log.Println(strings.ToLower(err.Error()))
+			err := wah.SessionConn.Restore()
+			if err != nil {
+				log.Println(strings.ToLower(err.Error()))
+			}
+		} else {
+			log.Println("error connection: connection closed unexpetedly")
 		}
 	} else {
 		if strings.Contains(strings.ToLower(err.Error()), "server closed connection") {
@@ -43,46 +53,93 @@ func (wah *WAHandler) HandleError(err error) {
 	}
 }
 
-func (wah *WAHandler) HandleTextMessage(msg whatsapp.TextMessage) {
-	if !strings.Contains(strings.ToLower(msg.Text), "@bot") || msg.Info.Timestamp < wah.StartTime {
+func (wah *WAHandler) HandleTextMessage(data whatsapp.TextMessage) {
+	if !strings.Contains(strings.ToLower(data.Text), "@bot") || data.Info.Timestamp < wah.SessionStart {
 		return
 	}
 
-	msgRecieved := strings.SplitN(strings.ToLower(msg.Text), " ", 2)[1]
-	log.Printf("recieved text message\nTimestamp:\t%v\nMessage ID:\t%v\nQuoted to ID:\t%v\nRemote JID:\t%v\nMessage:\t%v\n", msg.Info.Timestamp, msg.Info.Id, msg.Info.QuotedMessageID, msg.Info.RemoteJid, msgRecieved)
+	msg := strings.SplitN(strings.ToLower(data.Text), " ", 2)[1]
+	log.Printf("recieved text message\nTimestamp:\t%v\nMessage ID:\t%v\nQuoted to ID:\t%v\nRemote JID:\t%v\nMessage:\t%v\n", data.Info.Timestamp, data.Info.Id, data.Info.QuotedMessageID, data.Info.RemoteJid, msg)
 
-	if wah.TestMode {
-		if msg.Info.FromMe && msg.Info.RemoteJid == wah.JID {
-			msgResponse := WACmd.Path("data." + msgRecieved + ".res").Data()
+	res, err := WACmdSearch(WACmd, strings.Split(msg, " "), 0)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
 
-			err := WAMessageText(wah.WAConn, msg.Info.RemoteJid, msgResponse.(string), 0)
+	if wah.IsTest {
+		if data.Info.FromMe && data.Info.RemoteJid == wah.SessionJID {
+			err := WAMessageText(wah.SessionConn, data.Info.RemoteJid, res.(string), 0)
 			if err != nil {
 				log.Println("error while sending message: " + err.Error())
 			}
 		}
 	} else {
-		msgResponse := WACmd.Path("data." + msgRecieved + ".res").Data()
-
-		err := WAMessageText(wah.WAConn, msg.Info.RemoteJid, msgResponse.(string), 0)
+		err := WAMessageText(wah.SessionConn, data.Info.RemoteJid, res.(string), 0)
 		if err != nil {
 			log.Println("error while sending message: " + err.Error())
 		}
 	}
 }
 
-var WACmd *gabs.Container
-var WAConn *whatsapp.Conn
-
-func WAInitCmd(file string) (*gabs.Container, error) {
+func WACmdInit(file string) ([]*gabs.Container, error) {
 	json, err := gabs.ParseJSONFile(file)
 	if err != nil {
 		return nil, err
 	}
 
-	return json, nil
+	cmds, err := json.S("data").Children()
+	if err != nil {
+		return nil, err
+	}
+
+	return cmds, nil
 }
 
-func WAInitConn(timeout int) (*whatsapp.Conn, error) {
+func WACmdSearch(json []*gabs.Container, filter []string, nFilter int) (interface{}, error) {
+	sFilter := len(filter) - 1
+	if nFilter > sFilter {
+		return nil, errors.New("command search: filter number cannot bigger than " + strconv.Itoa(sFilter))
+	}
+
+	for _, cmd := range json {
+		if cmd.Path("cmd").Data() == filter[nFilter] {
+			if nFilter < sFilter {
+				if cmd.ExistsP("ext") {
+					cmds, err := cmd.S("ext").Children()
+					if err != nil {
+						return nil, err
+					}
+
+					return WACmdSearch(cmds, filter, nFilter+1)
+				}
+
+				return nil, errors.New("command search: command not found")
+			}
+
+			if cmd.ExistsP("exec") {
+				out, err := exec.Command(cmd.Path("exec").Data().(string)).Output()
+				if err != nil {
+					return nil, err
+				}
+
+				if cmd.ExistsP("res") {
+					return fmt.Sprintf("%v\n%v", cmd.Path("res").Data(), string(out)), nil
+				}
+
+				return string(out), nil
+			}
+
+			if cmd.ExistsP("res") {
+				return cmd.Path("res").Data(), nil
+			}
+		}
+	}
+
+	return nil, errors.New("command search: command not found")
+}
+
+func WASessionInit(timeout int) (*whatsapp.Conn, error) {
 	conn, err := whatsapp.NewConn(time.Duration(timeout) * time.Second)
 	if err != nil {
 		return nil, err

@@ -23,7 +23,7 @@ var Login = &cobra.Command{
 
 		file := "./data.gob"
 
-		conn, err := hlp.WAInitConn(timeout)
+		conn, err := hlp.WASessionInit(timeout)
 		if err != nil {
 			fmt.Println(strings.ToLower(err.Error()))
 			return

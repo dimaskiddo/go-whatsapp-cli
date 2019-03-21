@@ -38,7 +38,7 @@ var Daemon = &cobra.Command{
 			return
 		}
 
-		hlp.WACmd, err = hlp.WAInitCmd("./data.json")
+		hlp.WACmd, err = hlp.WACmdInit("./data.json")
 		if err != nil {
 			log.Println(strings.ToLower(err.Error()))
 			return
@@ -51,7 +51,7 @@ var Daemon = &cobra.Command{
 			file := "./data.gob"
 
 			if hlp.WASessionExist(file) && hlp.WAConn == nil {
-				hlp.WAConn, err = hlp.WAInitConn(timeout)
+				hlp.WAConn, err = hlp.WASessionInit(timeout)
 				if err != nil {
 					log.Println(strings.ToLower(err.Error()))
 					return
@@ -76,15 +76,14 @@ var Daemon = &cobra.Command{
 				}
 
 				<-time.After(time.Second)
-				var wah hlp.WAHandler
-
-				wah.WAConn = hlp.WAConn
-				wah.JID = jid
-				wah.StartTime = uint64(time.Now().Unix())
-				wah.ReconnectTime = reconnect
-				wah.TestMode = test
-
-				hlp.WAConn.AddHandler(&wah)
+				hlp.WAConn.AddHandler(&hlp.WAHandler{
+					SessionConn:   hlp.WAConn,
+					SessionJID:    jid,
+					SessionFile:   file,
+					SessionStart:  uint64(time.Now().Unix()),
+					ReconnectTime: reconnect,
+					IsTest:        test,
+				})
 			} else if !hlp.WASessionExist(file) && hlp.WAConn != nil {
 				_, _ = hlp.WAConn.Disconnect()
 				hlp.WAConn = nil
@@ -97,11 +96,14 @@ var Daemon = &cobra.Command{
 			select {
 			case <-sigchan:
 				fmt.Println("")
-				log.Println("clossing connection")
 
-				_, _ = hlp.WAConn.Disconnect()
+				if hlp.WAConn != nil {
+					log.Println("clossing connection")
+					_, _ = hlp.WAConn.Disconnect()
+				}
 				hlp.WAConn = nil
 
+				log.Println("gracefull termination")
 				return
 			case <-time.After(5 * time.Second):
 			}
