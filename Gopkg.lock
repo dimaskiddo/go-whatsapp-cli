@@ -42,7 +42,7 @@
   version = "v1.3.1"
 
 [[projects]]
-  digest = "1:7b5c6e2eeaa9ae5907c391a91c132abfd5c9e8a784a341b5625e750c67e6825d"
+  digest = "1:a26f1226b5c210196d96adc4985e8d7c2ff4dd766031704ba7e76564f5720d4d"
   name = "github.com/gorilla/websocket"
   packages = ["."]
   pruneopts = "UT"

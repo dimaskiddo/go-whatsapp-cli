@@ -64,10 +64,10 @@ var Daemon = &cobra.Command{
 				}
 
 				jid := strings.SplitN(hlp.WAConn.Info.Wid, "@", 2)[0] + "@s.whatsapp.net"
-				log.Println("logged in as " + jid)
+				log.Println("daemon: logged in as " + jid)
 
 				if test {
-					log.Println("sending text message to " + jid)
+					log.Println("daemon: sending test text message to " + jid)
 
 					err = hlp.WAMessageText(hlp.WAConn, jid, "Welcome to Go WhatsApp CLI (Test Mode)\nPlease Test Any Handler Here!", 0)
 					if err != nil {
@@ -88,9 +88,9 @@ var Daemon = &cobra.Command{
 				_, _ = hlp.WAConn.Disconnect()
 				hlp.WAConn = nil
 
-				log.Println("logged out session not valid")
+				log.Println("daemon: logged out, session not valid")
 			} else if !hlp.WASessionExist(file) && hlp.WAConn == nil {
-				log.Println("trying to login, waiting for session file ...")
+				log.Println("daemon: trying to login, waiting for session file ...")
 			}
 
 			select {
@@ -98,12 +98,12 @@ var Daemon = &cobra.Command{
 				fmt.Println("")
 
 				if hlp.WAConn != nil {
-					log.Println("clossing connection")
+					log.Println("daemon: terminating connection")
 					_, _ = hlp.WAConn.Disconnect()
 				}
 				hlp.WAConn = nil
 
-				log.Println("gracefull termination")
+				log.Println("daemon: terminating process")
 				return
 			case <-time.After(5 * time.Second):
 			}
