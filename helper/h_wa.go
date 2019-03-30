@@ -3,20 +3,16 @@ package helper
 import (
 	"encoding/gob"
 	"errors"
-	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"strconv"
 	"strings"
 	"time"
 
 	qrterm "github.com/Baozisoftware/qrcode-terminal-go"
-	"github.com/Jeffail/gabs"
 	whatsapp "github.com/dimaskiddo/go-whatsapp"
 )
 
-var WACmd []*gabs.Container
 var WAConn *whatsapp.Conn
 
 type WAHandler struct {
@@ -59,84 +55,27 @@ func (wah *WAHandler) HandleTextMessage(data whatsapp.TextMessage) {
 	}
 
 	msg := strings.SplitN(strings.ToLower(data.Text), " ", 2)[1]
-	log.Printf("recieved text message\nTimestamp:\t%v\nMessage ID:\t%v\nQuoted to ID:\t%v\nRemote JID:\t%v\nMessage:\t%v\n", data.Info.Timestamp, data.Info.Id, data.Info.QuotedMessageID, data.Info.RemoteJid, msg)
+	log.Printf("handler: recieved text message\nTimestamp:\t%v\nMessage ID:\t%v\nQuoted to ID:\t%v\nRemote JID:\t%v\nMessage:\t%v\n", data.Info.Timestamp, data.Info.Id, data.Info.QuotedMessageID, data.Info.RemoteJid, msg)
 
-	res, err := WACmdSearch(WACmd, strings.Split(msg, " "), 0)
+	res, err := CMDExec(CMDList, strings.Split(msg, " "), 0)
 	if err != nil {
+		res = "Ouch, i can't understand your command (@.@)"
 		log.Println(err.Error())
-		return
 	}
 
 	if wah.IsTest {
 		if data.Info.FromMe && data.Info.RemoteJid == wah.SessionJID {
 			err := WAMessageText(wah.SessionConn, data.Info.RemoteJid, res.(string), 0)
 			if err != nil {
-				log.Println("error while sending message: " + err.Error())
+				log.Println("handler: error while sending message, " + err.Error())
 			}
 		}
 	} else {
 		err := WAMessageText(wah.SessionConn, data.Info.RemoteJid, res.(string), 0)
 		if err != nil {
-			log.Println("error while sending message: " + err.Error())
+			log.Println("handler: error while sending message, " + err.Error())
 		}
 	}
-}
-
-func WACmdInit(file string) ([]*gabs.Container, error) {
-	json, err := gabs.ParseJSONFile(file)
-	if err != nil {
-		return nil, err
-	}
-
-	cmds, err := json.S("data").Children()
-	if err != nil {
-		return nil, err
-	}
-
-	return cmds, nil
-}
-
-func WACmdSearch(json []*gabs.Container, filter []string, nFilter int) (interface{}, error) {
-	sFilter := len(filter) - 1
-	if nFilter > sFilter {
-		return nil, errors.New("command search: filter number cannot bigger than " + strconv.Itoa(sFilter))
-	}
-
-	for _, cmd := range json {
-		if cmd.Path("cmd").Data() == filter[nFilter] {
-			if nFilter < sFilter {
-				if cmd.ExistsP("ext") {
-					cmds, err := cmd.S("ext").Children()
-					if err != nil {
-						return nil, err
-					}
-
-					return WACmdSearch(cmds, filter, nFilter+1)
-				}
-
-				return nil, errors.New("command search: command not found")
-			}
-
-			if cmd.ExistsP("exec") {
-				out, err := exec.Command(cmd.Path("exec").Data().(string)).Output()
-				if err != nil {
-					return nil, err
-				}
-
-				if cmd.ExistsP("res") {
-					return fmt.Sprintf("%v\n%v", cmd.Path("res").Data(), string(out)), nil
-				}
-
-				return string(out), nil
-			}
-
-			if cmd.ExistsP("res") {
-				return cmd.Path("res").Data(), nil
-			}
-		}
-	}
-
-	return nil, errors.New("command search: command not found")
 }
 
 func WASessionInit(timeout int) (*whatsapp.Conn, error) {
@@ -144,7 +83,7 @@ func WASessionInit(timeout int) (*whatsapp.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
-	conn.SetClientName("Go WhatsApp CLI", "Go WhatsApp")
+	conn.SetClientName("PlayCourt in WhatsApp", "PlayCourt in WhatsApp")
 	return conn, nil
 }
 

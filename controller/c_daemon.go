@@ -38,18 +38,18 @@ var Daemon = &cobra.Command{
 			return
 		}
 
-		hlp.WACmd, err = hlp.WACmdInit("./data.json")
+		hlp.CMDList, err = hlp.CMDParse("./data.json")
 		if err != nil {
 			log.Println(strings.ToLower(err.Error()))
 			return
 		}
 
+		file := "./data.gob"
+
 		sigchan := make(chan os.Signal, 1)
 		signal.Notify(sigchan, os.Interrupt, syscall.SIGTERM)
 
 		for {
-			file := "./data.gob"
-
 			if hlp.WASessionExist(file) && hlp.WAConn == nil {
 				hlp.WAConn, err = hlp.WASessionInit(timeout)
 				if err != nil {
@@ -69,7 +69,7 @@ var Daemon = &cobra.Command{
 				if test {
 					log.Println("daemon: sending test text message to " + jid)
 
-					err = hlp.WAMessageText(hlp.WAConn, jid, "Welcome to Go WhatsApp CLI (Test Mode)\nPlease Test Any Handler Here!", 0)
+					err = hlp.WAMessageText(hlp.WAConn, jid, "Welcome to Go WhatsApp CLI\nPlease Test Any Handler Here!", 0)
 					if err != nil {
 						log.Println(strings.ToLower(err.Error()))
 					}

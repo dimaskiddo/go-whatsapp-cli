@@ -1,32 +1,32 @@
 {
   "data": [
     {
-      "cmd": "hello",
-      "res": "Hai, How are you?" 
+      "command": "hello",
+      "message": "Hai, How are you?" 
     },
     {
-      "cmd": "intro",
-      "res": "Hello, My Name is KiddoBot (^.^)\nNice to meet you~" 
+      "command": "intro",
+      "message": "Hello, My Name is KiddoBot (^.^)\nNice to meet you~" 
     },
     {
-      "cmd": "exec",
-      "res": "What do you want to execute?",
-      "ext": [
+      "command": "exec",
+      "message": "What do you want to execute?",
+      "data": [
         {
-          "cmd": "who",
-          "res": "Who is active now:",
-          "exec": "who"
+          "command": "who",
+          "message": "Who is active now:",
+          "execute": "who"
         },
         {
-          "cmd": "whoami",
-          "res": "Who is my name:",
-          "exec": "whoami"
+          "command": "whoami",
+          "message": "Who is my name:",
+          "execute": "whoami"
         }
       ]  
     },
     {
-      "cmd": "help",
-      "res": "What can i help you?"
+      "command": "help",
+      "message": "What can i help you?"
     }
   ]
 }

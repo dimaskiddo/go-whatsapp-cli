@@ -42,7 +42,7 @@
   version = "v1.3.1"
 
 [[projects]]
-  digest = "1:a26f1226b5c210196d96adc4985e8d7c2ff4dd766031704ba7e76564f5720d4d"
+  digest = "1:7b5c6e2eeaa9ae5907c391a91c132abfd5c9e8a784a341b5625e750c67e6825d"
   name = "github.com/gorilla/websocket"
   packages = ["."]
   pruneopts = "UT"
@@ -118,15 +118,15 @@
     "hkdf",
   ]
   pruneopts = "UT"
-  revision = "b7391e95e576cacdcdd422573063bc057239113d"
+  revision = "a5d413f7728c81fb97d96a2b722368945f651e78"
 
 [[projects]]
   branch = "master"
-  digest = "1:5637b3b43405643229e55140bb3049dfa7d73957ba9ecfccc31cdadbfbe0b1f9"
+  digest = "1:c9a4e761695039425d21448d3289ff280c3a98f0c8145fa7417d9889556006b7"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "f7bb7a8bee54210937e93ec56d007d892c1f0580"
+  revision = "9eb1bfa1ce65ae8a6ff3114b0aaf9a41a6cf3560"
 
 [solve-meta]
   analyzer-name = "dep"

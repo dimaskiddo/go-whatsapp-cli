@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -26,6 +27,12 @@ var Logout = &cobra.Command{
 		conn, err := hlp.WASessionInit(timeout)
 		if err != nil {
 			fmt.Println(strings.ToLower(err.Error()))
+			return
+		}
+
+		err = hlp.WASessionRestore(conn, file)
+		if err != nil {
+			log.Println(strings.ToLower(err.Error()))
 			return
 		}
 
