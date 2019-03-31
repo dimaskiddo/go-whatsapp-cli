@@ -54,12 +54,12 @@ func (wah *WAHandler) HandleTextMessage(data whatsapp.TextMessage) {
 		return
 	}
 
-	msg := strings.SplitN(strings.ToLower(data.Text), " ", 2)[1]
+	msg := strings.SplitN(strings.ToLower(strings.TrimSpace(data.Text)), " ", 2)[1]
 	log.Printf("handler: recieved text message\nTimestamp:\t%v\nMessage ID:\t%v\nQuoted to ID:\t%v\nRemote JID:\t%v\nMessage:\t%v\n", data.Info.Timestamp, data.Info.Id, data.Info.QuotedMessageID, data.Info.RemoteJid, msg)
 
 	res, err := CMDExec(CMDList, strings.Split(msg, " "), 0)
 	if err != nil {
-		res = "Ouch, i can't understand your command (@.@)"
+		res = "Ouch, Got some error here while processing your request (@.@)"
 		log.Println(err.Error())
 	}
 
@@ -211,7 +211,7 @@ func WAMessageText(conn *whatsapp.Conn, msgJID string, msgText string, msgDelay 
 			Info: whatsapp.MessageInfo{
 				RemoteJid: msgJID,
 			},
-			Text: msgText,
+			Text: strings.TrimSpace(msgText),
 		}
 
 		<-time.After(time.Duration(msgDelay) * time.Second)

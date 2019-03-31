@@ -19,7 +19,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:f1ed1b7719007ab569ad0b3e39b0d2845f1737b632c4138074349eccaf94319f"
+  digest = "1:a26f1226b5c210196d96adc4985e8d7c2ff4dd766031704ba7e76564f5720d4d"
   name = "github.com/dimaskiddo/go-whatsapp"
   packages = [
     ".",
