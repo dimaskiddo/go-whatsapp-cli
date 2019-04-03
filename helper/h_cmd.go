@@ -3,6 +3,7 @@ package helper
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -58,18 +59,36 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) (interface{}, 
 
 					switch {
 					case paramLength == 0:
-						paramLength = cmdLength - n
+						var cmdParam string
+
+						for i := 1; i <= cmdLength-n; i++ {
+							cmdParam = cmdParam + " " + cmdArray[n+i]
+						}
+
+						cmdExec = strings.Replace(cmdExec, "<0>", cmdParam, 1)
 					case paramLength < cmdLength-n:
 						return nil, errors.New("command exec: paramter ouf of bound")
 					default:
-					}
-
-					for i := 1; i <= paramLength; i++ {
-						cmdExec = strings.Replace(cmdExec, "<"+strconv.Itoa(i)+">", cmdArray[n+i], 1)
+						for i := 1; i <= paramLength; i++ {
+							cmdExec = strings.Replace(cmdExec, "<"+strconv.Itoa(i)+">", cmdArray[n+i], 1)
+						}
 					}
 				}
 
 				out, err := exec.Command("sh", "-c", cmdExec).Output()
+				if err != nil {
+					return nil, err
+				}
+
+				if cmd.ExistsP("message") {
+					return fmt.Sprintf("%v\n%v", cmd.Path("message").Data(), string(out)), nil
+				}
+
+				return string(out), nil
+			}
+
+			if cmd.ExistsP("file") {
+				out, err := ioutil.ReadFile(cmd.Path("file").Data().(string))
 				if err != nil {
 					return nil, err
 				}

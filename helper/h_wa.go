@@ -50,30 +50,39 @@ func (wah *WAHandler) HandleError(err error) {
 }
 
 func (wah *WAHandler) HandleTextMessage(data whatsapp.TextMessage) {
-	if !strings.Contains(strings.ToLower(data.Text), "@bot") || data.Info.Timestamp < wah.SessionStart {
+	msgText := strings.SplitN(strings.ToLower(strings.TrimSpace(data.Text)), " ", 2)
+	if msgText[0] != "@bot" || data.Info.Timestamp < wah.SessionStart {
 		return
 	}
 
-	msg := strings.SplitN(strings.ToLower(strings.TrimSpace(data.Text)), " ", 2)[1]
-	log.Printf("handler: recieved text message\nTimestamp:\t%v\nMessage ID:\t%v\nQuoted to ID:\t%v\nRemote JID:\t%v\nMessage:\t%v\n", data.Info.Timestamp, data.Info.Id, data.Info.QuotedMessageID, data.Info.RemoteJid, msg)
+	msgCommand := msgText[1]
 
-	res, err := CMDExec(CMDList, strings.Split(msg, " "), 0)
-	if err != nil {
-		res = "Ouch, Got some error here while processing your request (@.@)"
+	var resText []interface{}
+	resText = append(resText, "")
+
+	resCommand, err := CMDExec(CMDList, strings.Split(msgCommand, " "), 0)
+	if err == nil {
+		resText = SplitAtChar(resCommand.(string), "\n", 2000)
+	} else {
+		resText[0] = "Ouch, Got some error here while processing your request 🙈"
 		log.Println(err.Error())
 	}
 
 	if wah.IsTest {
 		if data.Info.FromMe && data.Info.RemoteJid == wah.SessionJID {
-			err := WAMessageText(wah.SessionConn, data.Info.RemoteJid, res.(string), 0)
-			if err != nil {
-				log.Println("handler: error while sending message, " + err.Error())
+			for i := 0; i < len(resText); i++ {
+				err := WAMessageText(wah.SessionConn, data.Info.RemoteJid, "```"+strings.TrimSpace(resText[i].(string))+"```", 0)
+				if err != nil {
+					log.Println("handler: error while sending message, " + err.Error())
+				}
 			}
 		}
 	} else {
-		err := WAMessageText(wah.SessionConn, data.Info.RemoteJid, res.(string), 0)
-		if err != nil {
-			log.Println("handler: error while sending message, " + err.Error())
+		for i := 0; i < len(resText); i++ {
+			err := WAMessageText(wah.SessionConn, data.Info.RemoteJid, "```"+strings.TrimSpace(resText[i].(string))+"```", 0)
+			if err != nil {
+				log.Println("handler: error while sending message, " + err.Error())
+			}
 		}
 	}
 }
@@ -83,7 +92,7 @@ func WASessionInit(timeout int) (*whatsapp.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
-	conn.SetClientName("PlayCourt in WhatsApp", "PlayCourt in WhatsApp")
+	conn.SetClientName("Go WhatsApp CLI", "Go WhatsApp")
 	return conn, nil
 }
 
@@ -211,7 +220,7 @@ func WAMessageText(conn *whatsapp.Conn, msgJID string, msgText string, msgDelay 
 			Info: whatsapp.MessageInfo{
 				RemoteJid: msgJID,
 			},
-			Text: strings.TrimSpace(msgText),
+			Text: msgText,
 		}
 
 		<-time.After(time.Duration(msgDelay) * time.Second)

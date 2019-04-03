@@ -1,0 +1,5 @@
+gowa
+*.gob
+!docs/*
+!data.json
+!*.gitkeep

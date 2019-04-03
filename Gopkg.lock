@@ -19,7 +19,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a26f1226b5c210196d96adc4985e8d7c2ff4dd766031704ba7e76564f5720d4d"
+  digest = "1:f1ed1b7719007ab569ad0b3e39b0d2845f1737b632c4138074349eccaf94319f"
   name = "github.com/dimaskiddo/go-whatsapp"
   packages = [
     ".",
@@ -122,11 +122,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c9a4e761695039425d21448d3289ff280c3a98f0c8145fa7417d9889556006b7"
+  digest = "1:cd9a35e005d99871df9dc2354bc9dd8f09d186e2efa6affae6593f5ef93876b0"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "9eb1bfa1ce65ae8a6ff3114b0aaf9a41a6cf3560"
+  revision = "baf5eb976a8cd65845293cd814ea151018552292"
 
 [solve-meta]
   analyzer-name = "dep"
