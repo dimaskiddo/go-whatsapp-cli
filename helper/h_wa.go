@@ -28,7 +28,7 @@ func (wah *WAHandler) HandleError(err error) {
 	_, eMatch := err.(*whatsapp.ErrConnectionFailed)
 	if eMatch {
 		if WASessionExist(wah.SessionFile) && wah.SessionConn != nil {
-			log.Println("error connection: connection closed unexpetedly, reconnecting after " + strconv.Itoa(wah.ReconnectTime) + " seconds")
+			log.Println("whatsapp: connection closed unexpetedly, reconnecting after " + strconv.Itoa(wah.ReconnectTime) + " seconds")
 
 			wah.SessionStart = uint64(time.Now().Unix())
 			<-time.After(time.Duration(wah.ReconnectTime) * time.Second)
@@ -38,7 +38,7 @@ func (wah *WAHandler) HandleError(err error) {
 				log.Println(strings.ToLower(err.Error()))
 			}
 		} else {
-			log.Println("error connection: connection closed unexpetedly")
+			log.Println("whatsapp: connection closed unexpetedly")
 		}
 	} else {
 		if strings.Contains(strings.ToLower(err.Error()), "server closed connection") {
@@ -57,7 +57,7 @@ func (wah *WAHandler) HandleTextMessage(data whatsapp.TextMessage) {
 
 	msgCommand := msgText[1]
 
-	var resText []interface{}
+	var resText []string
 	resText = append(resText, "")
 
 	resCommand, err := CMDExec(CMDList, strings.Split(msgCommand, " "), 0)
@@ -71,17 +71,17 @@ func (wah *WAHandler) HandleTextMessage(data whatsapp.TextMessage) {
 	if wah.IsTest {
 		if data.Info.FromMe && data.Info.RemoteJid == wah.SessionJID {
 			for i := 0; i < len(resText); i++ {
-				err := WAMessageText(wah.SessionConn, data.Info.RemoteJid, "```"+strings.TrimSpace(resText[i].(string))+"```", 0)
+				err := WAMessageText(wah.SessionConn, data.Info.RemoteJid, "```"+resText[i]+"```", 0)
 				if err != nil {
-					log.Println("handler: error while sending message, " + err.Error())
+					log.Println("whatsapp: error while sending message, " + err.Error())
 				}
 			}
 		}
 	} else {
 		for i := 0; i < len(resText); i++ {
-			err := WAMessageText(wah.SessionConn, data.Info.RemoteJid, "```"+strings.TrimSpace(resText[i].(string))+"```", 0)
+			err := WAMessageText(wah.SessionConn, data.Info.RemoteJid, "```"+resText[i]+"```", 0)
 			if err != nil {
-				log.Println("handler: error while sending message, " + err.Error())
+				log.Println("whatsapp: error while sending message, " + err.Error())
 			}
 		}
 	}
@@ -144,7 +144,7 @@ func WASessionLogin(conn *whatsapp.Conn, file string) error {
 		}()
 
 		if WASessionExist(file) {
-			return errors.New("error session: session file already exist, please logout first")
+			return errors.New("whatsapp: session file already exist, please logout first")
 		}
 
 		qrstr := make(chan string)
@@ -163,7 +163,7 @@ func WASessionLogin(conn *whatsapp.Conn, file string) error {
 			return err
 		}
 	} else {
-		return errors.New("error connection: connection is not valid")
+		return errors.New("whatsapp: connection is not valid")
 	}
 
 	return nil
@@ -173,14 +173,14 @@ func WASessionRestore(conn *whatsapp.Conn, file string) error {
 	if conn != nil {
 		if !WASessionExist(file) {
 			_, _ = conn.Disconnect()
-			return errors.New("error session: session file doesn't exist, please login first")
+			return errors.New("whatsapp: session file doesn't exist, please login first")
 		}
 
 		session, err := WASessionLoad(file)
 		if err != nil {
 			_ = os.Remove(file)
 			_, _ = conn.Disconnect()
-			return errors.New("error session: session not valid, removing session file")
+			return errors.New("whatsapp: session not valid, removing session file")
 		}
 
 		session, err = conn.RestoreWithSession(session)
@@ -189,7 +189,7 @@ func WASessionRestore(conn *whatsapp.Conn, file string) error {
 			return err
 		}
 	} else {
-		return errors.New("error connection: connection is not valid")
+		return errors.New("whatsapp: connection is not valid")
 	}
 
 	return nil
@@ -208,7 +208,7 @@ func WASessionLogout(conn *whatsapp.Conn, file string) error {
 
 		_ = os.Remove(file)
 	} else {
-		return errors.New("error connection: connection is not valid")
+		return errors.New("whatsapp: connection is not valid")
 	}
 
 	return nil
@@ -230,7 +230,7 @@ func WAMessageText(conn *whatsapp.Conn, msgJID string, msgText string, msgDelay 
 			return err
 		}
 	} else {
-		return errors.New("error connection: connection is not valid")
+		return errors.New("whatsapp: connection is not valid")
 	}
 
 	return nil

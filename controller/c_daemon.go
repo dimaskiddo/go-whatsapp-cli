@@ -20,28 +20,26 @@ var Daemon = &cobra.Command{
 	Short: "Run as daemon service",
 	Long:  "Daemon Service for WhatsApp Web",
 	Run: func(cmd *cobra.Command, args []string) {
-		timeout, err := cmd.Flags().GetInt("timeout")
-		if err != nil {
-			log.Println(strings.ToLower(err.Error()))
-			return
+		var err error
+
+		timeout := hlp.GetEnv("WA_TIMEOUT", "int", false)
+		if timeout == nil {
+			timeout, _ = cmd.Flags().GetInt("timeout")
 		}
 
-		reconnect, err := cmd.Flags().GetInt("reconnect")
-		if err != nil {
-			log.Println(strings.ToLower(err.Error()))
-			return
+		reconnect := hlp.GetEnv("WA_RECONNECT", "int", false)
+		if reconnect == nil {
+			reconnect, _ = cmd.Flags().GetInt("reconnect")
 		}
 
-		test, err := cmd.Flags().GetBool("test")
-		if err != nil {
-			log.Println(strings.ToLower(err.Error()))
-			return
+		test := hlp.GetEnv("WA_TEST", "bool", false)
+		if test == nil {
+			test, _ = cmd.Flags().GetBool("test")
 		}
 
 		hlp.CMDList, err = hlp.CMDParse("./data.json")
 		if err != nil {
-			log.Println(strings.ToLower(err.Error()))
-			return
+			log.Fatalln(strings.ToLower(err.Error()))
 		}
 
 		file := "./data.gob"
@@ -49,9 +47,11 @@ var Daemon = &cobra.Command{
 		sigchan := make(chan os.Signal, 1)
 		signal.Notify(sigchan, os.Interrupt, syscall.SIGTERM)
 
+		log.Println("daemon: starting communication with whatsapp")
+
 		for {
 			if hlp.WASessionExist(file) && hlp.WAConn == nil {
-				hlp.WAConn, err = hlp.WASessionInit(timeout)
+				hlp.WAConn, err = hlp.WASessionInit(timeout.(int))
 				if err != nil {
 					log.Println(strings.ToLower(err.Error()))
 					return
@@ -63,11 +63,14 @@ var Daemon = &cobra.Command{
 					return
 				}
 
-				jid := strings.SplitN(hlp.WAConn.Info.Wid, "@", 2)[0] + "@s.whatsapp.net"
-				log.Println("daemon: logged in as " + jid)
+				msisdn := strings.SplitN(hlp.WAConn.Info.Wid, "@", 2)[0]
+				masked := msisdn[0:len(msisdn)-3] + "xxx"
+				jid := msisdn + "@s.whatsapp.net"
 
-				if test {
-					log.Println("daemon: sending test text message to " + jid)
+				log.Println("daemon: logged in to whatsapp as " + masked)
+
+				if test.(bool) {
+					log.Println("daemon: sending test message to " + masked)
 
 					err = hlp.WAMessageText(hlp.WAConn, jid, "Welcome to Go WhatsApp CLI\nPlease Test Any Handler Here!", 0)
 					if err != nil {
@@ -81,16 +84,16 @@ var Daemon = &cobra.Command{
 					SessionJID:    jid,
 					SessionFile:   file,
 					SessionStart:  uint64(time.Now().Unix()),
-					ReconnectTime: reconnect,
-					IsTest:        test,
+					ReconnectTime: reconnect.(int),
+					IsTest:        test.(bool),
 				})
 			} else if !hlp.WASessionExist(file) && hlp.WAConn != nil {
 				_, _ = hlp.WAConn.Disconnect()
 				hlp.WAConn = nil
 
-				log.Println("daemon: logged out, session not valid")
+				log.Println("daemon: disconnected from whatsapp, missing session file")
 			} else if !hlp.WASessionExist(file) && hlp.WAConn == nil {
-				log.Println("daemon: trying to login, waiting for session file ...")
+				log.Println("daemon: trying to login, waiting for session file...")
 			}
 
 			select {
@@ -98,13 +101,12 @@ var Daemon = &cobra.Command{
 				fmt.Println("")
 
 				if hlp.WAConn != nil {
-					log.Println("daemon: terminating connection")
 					_, _ = hlp.WAConn.Disconnect()
 				}
 				hlp.WAConn = nil
 
 				log.Println("daemon: terminating process")
-				return
+				os.Exit(0)
 			case <-time.After(5 * time.Second):
 			}
 		}
@@ -112,7 +114,7 @@ var Daemon = &cobra.Command{
 }
 
 func init() {
-	Daemon.Flags().Int("timeout", 10, "Timeout connection in second(s)")
-	Daemon.Flags().Int("reconnect", 30, "Reconnection time when connection closed in second(s)")
-	Daemon.Flags().Bool("test", false, "Test mode (only allow from the same id)")
+	Daemon.Flags().Int("timeout", 10, "Timeout connection in second(s), can be override using environment variable WA_TIMEOUT")
+	Daemon.Flags().Int("reconnect", 30, "Reconnection time when connection closed in second(s), can be override using environment variable WA_RECONNECT")
+	Daemon.Flags().Bool("test", false, "Test mode (only allow from the same id), can be override using environment variable WA_TEST")
 }

@@ -4,21 +4,30 @@ import (
 	"strings"
 )
 
-func SplitAtChar(s string, sep string, n int) []interface{} {
+func SplitAtChar(s string, sep string, n int) []string {
 	var j int
+	var row string
 
-	var ret []interface{}
-	ret = append(ret, "")
+	var strRow []string
+	strRow = append(strRow, "")
 
-	lines := strings.Split(s, sep)
-	for i := 0; i < len(lines); i++ {
-		if len(ret[j].(string)+sep+lines[i]) > n {
-			ret = append(ret, "")
+	rows := strings.Split(s, sep)
+	for i := 0; i < len(rows); i++ {
+		switch len(strRow[j]) {
+		case 0:
+			row = strRow[j] + rows[i]
+		default:
+			row = strRow[j] + sep + rows[i]
+		}
+
+		if len(row) > n {
+			strRow[j] = strings.TrimSpace(strRow[j])
+			strRow = append(strRow, "")
 			j++
 		}
 
-		ret[j] = ret[j].(string) + sep + lines[i]
+		strRow[j] = row
 	}
 
-	return ret
+	return strRow
 }

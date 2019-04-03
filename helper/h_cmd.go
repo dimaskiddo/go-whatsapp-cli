@@ -28,9 +28,13 @@ func CMDParse(file string) ([]*gabs.Container, error) {
 }
 
 func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) (interface{}, error) {
+	if cmdList == nil {
+		return nil, errors.New("command: empty command list")
+	}
+
 	cmdLength := len(cmdArray) - 1
 	if n > cmdLength {
-		return nil, errors.New("command exec: index out of bound")
+		return nil, errors.New("command: index out of bound")
 	}
 
 	for _, cmd := range cmdList {
@@ -45,7 +49,7 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) (interface{}, 
 					return CMDExec(cmds, cmdArray, n+1)
 				}
 
-				return nil, errors.New("command exec: command not found")
+				return nil, errors.New("command: command not found")
 			}
 
 			if cmd.ExistsP("execute") {
@@ -67,7 +71,7 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) (interface{}, 
 
 						cmdExec = strings.Replace(cmdExec, "<0>", cmdParam, 1)
 					case paramLength < cmdLength-n:
-						return nil, errors.New("command exec: paramter ouf of bound")
+						return nil, errors.New("command: paramter ouf of bound")
 					default:
 						for i := 1; i <= paramLength; i++ {
 							cmdExec = strings.Replace(cmdExec, "<"+strconv.Itoa(i)+">", cmdArray[n+i], 1)
@@ -106,5 +110,5 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) (interface{}, 
 		}
 	}
 
-	return nil, errors.New("command exec: command not found")
+	return nil, errors.New("command: command not found")
 }

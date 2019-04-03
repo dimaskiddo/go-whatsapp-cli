@@ -15,15 +15,16 @@ var Logout = &cobra.Command{
 	Short: "Logout from WhatsApp Web",
 	Long:  "Logout from WhatsApp Web",
 	Run: func(cmd *cobra.Command, args []string) {
-		timeout, err := cmd.Flags().GetInt("timeout")
-		if err != nil {
-			fmt.Println(strings.ToLower(err.Error()))
-			return
+		var err error
+
+		timeout := hlp.GetEnv("WA_TIMEOUT", "int", false)
+		if timeout == nil {
+			timeout, _ = cmd.Flags().GetInt("timeout")
 		}
 
 		file := "./data.gob"
 
-		conn, err := hlp.WASessionInit(timeout)
+		conn, err := hlp.WASessionInit(timeout.(int))
 		if err != nil {
 			fmt.Println(strings.ToLower(err.Error()))
 			return
@@ -46,5 +47,5 @@ var Logout = &cobra.Command{
 }
 
 func init() {
-	Logout.Flags().Int("timeout", 10, "Timeout connection in second(s)")
+	Logout.Flags().Int("timeout", 10, "Timeout connection in second(s), can be override using environment variable WA_TIMEOUT")
 }
