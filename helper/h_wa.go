@@ -3,6 +3,7 @@ package helper
 import (
 	"encoding/gob"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -17,7 +18,7 @@ var WAConn *whatsapp.Conn
 
 type WAHandler struct {
 	SessionConn   *whatsapp.Conn
-	SessionJID    string
+	SessionJid    string
 	SessionFile   string
 	SessionStart  uint64
 	ReconnectTime int
@@ -50,12 +51,18 @@ func (wah *WAHandler) HandleError(err error) {
 }
 
 func (wah *WAHandler) HandleTextMessage(data whatsapp.TextMessage) {
-	msgText := strings.SplitN(strings.ToLower(strings.TrimSpace(data.Text)), " ", 2)
-	if msgText[0] != "@bot" || data.Info.Timestamp < wah.SessionStart {
+	if wah.IsTest && data.Info.RemoteJid != wah.SessionJid {
 		return
 	}
 
-	msgCommand := msgText[1]
+	botTag := fmt.Sprintf("@%s", strings.SplitN(wah.SessionJid, "@", 2)[0])
+
+	msgText := strings.SplitN(strings.TrimSpace(data.Text), " ", 2)
+	if msgText[0] != botTag || data.Info.Timestamp < wah.SessionStart {
+		return
+	}
+
+	msgCommand := strings.ToLower(msgText[1])
 
 	var resText []string
 	resText = append(resText, "")
@@ -68,21 +75,10 @@ func (wah *WAHandler) HandleTextMessage(data whatsapp.TextMessage) {
 		log.Println(err.Error())
 	}
 
-	if wah.IsTest {
-		if data.Info.FromMe && data.Info.RemoteJid == wah.SessionJID {
-			for i := 0; i < len(resText); i++ {
-				err := WAMessageText(wah.SessionConn, data.Info.RemoteJid, "```"+resText[i]+"```", 0)
-				if err != nil {
-					log.Println("whatsapp: error while sending message, " + err.Error())
-				}
-			}
-		}
-	} else {
-		for i := 0; i < len(resText); i++ {
-			err := WAMessageText(wah.SessionConn, data.Info.RemoteJid, "```"+resText[i]+"```", 0)
-			if err != nil {
-				log.Println("whatsapp: error while sending message, " + err.Error())
-			}
+	for i := 0; i < len(resText); i++ {
+		err := WAMessageText(wah.SessionConn, data.Info.RemoteJid, "```"+resText[i]+"```", 0)
+		if err != nil {
+			log.Println("whatsapp: error while sending message, " + err.Error())
 		}
 	}
 }

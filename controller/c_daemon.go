@@ -81,7 +81,7 @@ var Daemon = &cobra.Command{
 				<-time.After(time.Second)
 				hlp.WAConn.AddHandler(&hlp.WAHandler{
 					SessionConn:   hlp.WAConn,
-					SessionJID:    jid,
+					SessionJid:    jid,
 					SessionFile:   file,
 					SessionStart:  uint64(time.Now().Unix()),
 					ReconnectTime: reconnect.(int),
