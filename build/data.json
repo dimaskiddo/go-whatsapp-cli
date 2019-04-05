@@ -15,12 +15,16 @@
         {
           "command": "who",
           "message": "Who is active now:",
-          "execute": "who"
+          "cli": {
+            "execute": "who"
+          }
         },
         {
           "command": "whoami",
           "message": "Who is my name:",
-          "execute": "whoami"
+          "cli": {
+            "execute": "whoami"
+          }
         }
       ]  
     },

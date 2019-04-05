@@ -2,7 +2,6 @@ package helper
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os/exec"
 	"strconv"
@@ -27,7 +26,7 @@ func CMDParse(file string) ([]*gabs.Container, error) {
 	return cmds, nil
 }
 
-func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) (interface{}, error) {
+func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, error) {
 	if cmdList == nil {
 		return nil, errors.New("command: empty command list")
 	}
@@ -39,7 +38,7 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) (interface{}, 
 
 	for _, cmd := range cmdList {
 		if cmd.Path("command").Data() == cmdArray[n] {
-			if n < cmdLength && !cmd.ExistsP("param") {
+			if n < cmdLength && !cmd.ExistsP("cli.param") {
 				if cmd.ExistsP("data") {
 					cmds, err := cmd.S("data").Children()
 					if err != nil {
@@ -52,11 +51,16 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) (interface{}, 
 				return nil, errors.New("command: command not found")
 			}
 
-			if cmd.ExistsP("execute") {
-				cmdExec := cmd.Path("execute").Data().(string)
+			if cmd.ExistsP("cli.execute") {
+				cmdExec := cmd.Path("cli.execute").Data().(string)
 
-				if cmd.ExistsP("param") {
-					paramLength, err := strconv.Atoi(cmd.Path("param").String())
+				outFormat := "pretty"
+				if cmd.ExistsP("cli.output") {
+					outFormat = cmd.Path("cli.output").Data().(string)
+				}
+
+				if cmd.ExistsP("cli.param") {
+					paramLength, err := strconv.Atoi(cmd.Path("cli.param").String())
 					if err != nil {
 						return nil, err
 					}
@@ -84,11 +88,18 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) (interface{}, 
 					return nil, err
 				}
 
+				outSplit := SplitAtChar(string(out), "\n", 2000, outFormat)
+
 				if cmd.ExistsP("message") {
-					return fmt.Sprintf("%v\n%v", cmd.Path("message").Data(), string(out)), nil
+					var outMerge []string
+
+					outMerge = append(outMerge, cmd.Path("message").Data().(string))
+					outMerge = append(outMerge, outSplit...)
+
+					return outMerge, nil
 				}
 
-				return string(out), nil
+				return outSplit, nil
 			}
 
 			if cmd.ExistsP("file") {
@@ -97,15 +108,22 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) (interface{}, 
 					return nil, err
 				}
 
+				outSplit := SplitAtChar(string(out), "\n", 2000, "normal")
+
 				if cmd.ExistsP("message") {
-					return fmt.Sprintf("%v\n%v", cmd.Path("message").Data(), string(out)), nil
+					var outMerge []string
+
+					outMerge = append(outMerge, cmd.Path("message").Data().(string))
+					outMerge = append(outMerge, outSplit...)
+
+					return outMerge, nil
 				}
 
-				return string(out), nil
+				return outSplit, nil
 			}
 
 			if cmd.ExistsP("message") {
-				return cmd.Path("message").Data(), nil
+				return []string{cmd.Path("message").Data().(string)}, nil
 			}
 		}
 	}

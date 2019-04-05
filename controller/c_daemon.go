@@ -65,7 +65,9 @@ var Daemon = &cobra.Command{
 
 				msisdn := strings.SplitN(hlp.WAConn.Info.Wid, "@", 2)[0]
 				masked := msisdn[0:len(msisdn)-3] + "xxx"
+
 				jid := msisdn + "@s.whatsapp.net"
+				tag := fmt.Sprintf("@%s", msisdn)
 
 				log.Println("daemon: logged in to whatsapp as " + masked)
 
@@ -82,6 +84,7 @@ var Daemon = &cobra.Command{
 				hlp.WAConn.AddHandler(&hlp.WAHandler{
 					SessionConn:   hlp.WAConn,
 					SessionJid:    jid,
+					SessionTag:    tag,
 					SessionFile:   file,
 					SessionStart:  uint64(time.Now().Unix()),
 					ReconnectTime: reconnect.(int),
