@@ -9,6 +9,14 @@
       "message": "Hello, My Name is KiddoBot (^.^)\nNice to meet you~" 
     },
     {
+      "command": "sh",
+      "message": "Shell output:",
+      "cli": {
+        "execute": "<0>",
+        "param": 0
+      }
+    },
+    {
       "command": "exec",
       "message": "What do you want to execute?",
       "data": [
@@ -27,6 +35,13 @@
           }
         }
       ]  
+    },
+    {
+      "command": "ipinfo",
+      "message": "Here is your Public IP details:",
+      "curl": {
+        "url": "https://ipinfo.io/"
+      }
     },
     {
       "command": "help",

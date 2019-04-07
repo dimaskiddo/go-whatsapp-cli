@@ -51,75 +51,134 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 				return nil, errors.New("command: command not found")
 			}
 
+			if cmd.ExistsP("curl.url") {
+				cmdURL := cmd.Path("curl.url").Data().(string)
+
+				cmdMethod := "-X GET "
+				if cmd.ExistsP("curl.method") {
+					cmdMethod = "-X " + cmd.Path("curl.method").Data().(string) + " "
+				}
+
+				cmdHeader := "-H 'cache-control: no-cache' "
+				if cmd.ExistsP("curl.header") {
+					headers, err := cmd.S("curl.header").Children()
+					if err != nil {
+						return nil, err
+					}
+
+					for _, header := range headers {
+						cmdHeader = cmdHeader + "-H '" + header.Data().(string) + "' "
+					}
+				}
+
+				cmdForm := ""
+				if cmd.ExistsP("curl.form") {
+					forms, err := cmd.S("curl.form").Children()
+					if err != nil {
+						return nil, err
+					}
+
+					for _, form := range forms {
+						cmdForm = cmdForm + "-F '" + form.Data().(string) + "' "
+					}
+				}
+
+				cmdBody := ""
+				if cmd.ExistsP("curl.body") {
+					cmdBody = "-d " + cmd.Path("curl.body").Data().(string) + " "
+				}
+
+				cmdOutput := true
+				if cmd.ExistsP("curl.pretty") {
+					cmdOutput = cmd.Path("curl.pretty").Data().(bool)
+				}
+
+				cmdCURL := "curl " + cmdMethod + cmdHeader + cmdForm + cmdBody + cmdURL
+
+				cmdExecSplit := SplitWithEscapeN(cmdCURL, " ", -1)
+				execOutput, err := exec.Command(cmdExecSplit[0], cmdExecSplit[1:]...).Output()
+				if err != nil {
+					return nil, err
+				}
+
+				outReturn := []string{"There is nothing here, but the request is success 😆"}
+				if len(string(execOutput)) != 0 {
+					outReturn = SplitAfterCharN(string(execOutput), "\n", 2000, -1, cmdOutput)
+				}
+
+				if cmd.ExistsP("message") {
+					outReturn[0] = cmd.Path("message").Data().(string) + "\n" + outReturn[0]
+				}
+
+				return outReturn, nil
+			}
+
 			if cmd.ExistsP("cli.execute") {
 				cmdExec := cmd.Path("cli.execute").Data().(string)
 
-				outFormat := "pretty"
-				if cmd.ExistsP("cli.output") {
-					outFormat = cmd.Path("cli.output").Data().(string)
-				}
-
 				if cmd.ExistsP("cli.param") {
-					paramLength, err := strconv.Atoi(cmd.Path("cli.param").String())
+					cmdParamLength, err := strconv.Atoi(cmd.Path("cli.param").String())
 					if err != nil {
 						return nil, err
 					}
 
 					switch {
-					case paramLength == 0:
-						var cmdParam string
+					case cmdParamLength == 0:
+						cmdParam := ""
 
 						for i := 1; i <= cmdLength-n; i++ {
 							cmdParam = cmdParam + " " + cmdArray[n+i]
 						}
 
 						cmdExec = strings.Replace(cmdExec, "<0>", cmdParam, 1)
-					case paramLength < cmdLength-n:
+					case cmdParamLength < cmdLength-n:
 						return nil, errors.New("command: paramter ouf of bound")
 					default:
-						for i := 1; i <= paramLength; i++ {
+						for i := 1; i <= cmdParamLength; i++ {
 							cmdExec = strings.Replace(cmdExec, "<"+strconv.Itoa(i)+">", cmdArray[n+i], 1)
 						}
 					}
 				}
 
-				out, err := exec.Command("sh", "-c", cmdExec).Output()
+				cmdOutput := true
+				if cmd.ExistsP("cli.pretty") {
+					cmdOutput = cmd.Path("cli.pretty").Data().(bool)
+				}
+
+				cmdExecSplit := SplitWithEscapeN(cmdExec, " ", -1)
+				execOutput, err := exec.Command(cmdExecSplit[0], cmdExecSplit[1:]...).Output()
 				if err != nil {
 					return nil, err
 				}
 
-				outSplit := SplitAtChar(string(out), "\n", 2000, outFormat)
-
-				if cmd.ExistsP("message") {
-					var outMerge []string
-
-					outMerge = append(outMerge, cmd.Path("message").Data().(string))
-					outMerge = append(outMerge, outSplit...)
-
-					return outMerge, nil
+				outReturn := []string{"There is nothing here, but the execution is success 😆"}
+				if len(string(execOutput)) != 0 {
+					outReturn = SplitAfterCharN(string(execOutput), "\n", 2000, -1, cmdOutput)
 				}
 
-				return outSplit, nil
+				if cmd.ExistsP("message") {
+					outReturn[0] = cmd.Path("message").Data().(string) + "\n" + outReturn[0]
+				}
+
+				return outReturn, nil
 			}
 
 			if cmd.ExistsP("file") {
-				out, err := ioutil.ReadFile(cmd.Path("file").Data().(string))
+				execOutput, err := ioutil.ReadFile(cmd.Path("file").Data().(string))
 				if err != nil {
 					return nil, err
 				}
 
-				outSplit := SplitAtChar(string(out), "\n", 2000, "normal")
-
-				if cmd.ExistsP("message") {
-					var outMerge []string
-
-					outMerge = append(outMerge, cmd.Path("message").Data().(string))
-					outMerge = append(outMerge, outSplit...)
-
-					return outMerge, nil
+				outReturn := []string{"Sorry, i got nothing here 😔"}
+				if len(string(execOutput)) != 0 {
+					outReturn = SplitAfterCharN(string(execOutput), "\n", 2000, -1, false)
 				}
 
-				return outSplit, nil
+				if cmd.ExistsP("message") {
+					outReturn[0] = cmd.Path("message").Data().(string) + "\n" + outReturn[0]
+				}
+
+				return outReturn, nil
 			}
 
 			if cmd.ExistsP("message") {

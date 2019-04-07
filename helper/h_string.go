@@ -4,37 +4,65 @@ import (
 	"strings"
 )
 
-func SplitAtChar(s string, sep string, n int, out string) []string {
-	var j int
+func SplitAfterCharN(s string, sep string, lim int, n int, pre bool) []string {
+	ret := []string{""}
+	s = strings.TrimSpace(s)
 
-	var strPre string
-	strPre = ""
+	if len(s) > 0 {
+		var j int
 
-	if out == "pretty" {
-		strPre = "```"
-		n = n - 6
+		add := ""
+		if pre {
+			add = "```"
+			lim = lim - 6
+		}
+		ret[0] = add
+
+		split := strings.SplitN(s, sep, n)
+		for i := 0; i < len(split); i++ {
+			if len(ret[j]+sep+split[i]) > lim {
+				ret[j] = strings.TrimSpace(ret[j] + add)
+
+				ret = append(ret, add)
+				j++
+			}
+
+			if len(ret[j])-len(add) == 0 {
+				ret[j] = ret[j] + split[i]
+			} else {
+				ret[j] = ret[j] + sep + split[i]
+			}
+
+			if i == len(split)-1 {
+				ret[j] = strings.TrimSpace(ret[j] + add)
+			}
+		}
 	}
 
-	var strRow []string
-	strRow = append(strRow, "")
+	return ret
+}
 
-	rows := strings.Split(s, sep)
-	for i := 0; i < len(rows); i++ {
-		if len(strRow[j]+sep+rows[i]) > n || i == len(rows)-1 {
-			strRow[j] = strings.TrimSpace(strRow[j]) + strPre
+func SplitWithEscapeN(s string, sep string, n int) []string {
+	ret := []string{""}
+	s = strings.TrimSpace(s)
 
-			if i != len(rows)-1 {
-				strRow = append(strRow, "")
+	if len(s) > 0 {
+		var j int
+
+		split := strings.SplitN(s, sep, n)
+		for i := 0; i < len(split); i++ {
+			ret[j] = strings.TrimSpace(split[i])
+			for (strings.Count(ret[j], "'") == 1 || strings.Count(ret[j], "\"") == 1) && i != len(split)-1 {
+				ret[j] = ret[j] + sep + strings.TrimSpace(split[i+1])
+				i++
+			}
+
+			if i != len(split)-1 {
+				ret = append(ret, "")
 				j++
 			}
 		}
-
-		if len(strRow[j]) == 0 {
-			strRow[j] = strPre + rows[i]
-		} else {
-			strRow[j] = strRow[j] + sep + rows[i]
-		}
 	}
 
-	return strRow
+	return ret
 }
