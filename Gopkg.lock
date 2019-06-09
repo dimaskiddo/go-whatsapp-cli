@@ -10,16 +10,16 @@
   revision = "c0650d8dff0f053901ff16185217b950d5e7743c"
 
 [[projects]]
-  digest = "1:608b2b045f70e1c7002181db5d614fe8edf6a70bd151c2abcb8928af002bc17b"
+  digest = "1:06f9276c40d85647a9227cbf935f81b763171ca4f60c623ec172d40bce0613fa"
   name = "github.com/Jeffail/gabs"
   packages = ["."]
   pruneopts = "UT"
-  revision = "74ef14cf8f407ee3ca8ec01bb6f52d6104edea80"
-  version = "v1.2.0"
+  revision = "636cf72d5e3c0ebad157af7c694469e7d89cec0f"
+  version = "v1.4.0"
 
 [[projects]]
   branch = "master"
-  digest = "1:f1ed1b7719007ab569ad0b3e39b0d2845f1737b632c4138074349eccaf94319f"
+  digest = "1:beace873a355ccbd9d7f0f301763c2f3da890ecc88527248a5e1b3ca580b30c2"
   name = "github.com/dimaskiddo/go-whatsapp"
   packages = [
     ".",
@@ -31,7 +31,7 @@
     "crypto/hkdf",
   ]
   pruneopts = "UT"
-  revision = "cbe3100090a47af1670f1311afca6d661ec5e849"
+  revision = "0c2360e6911729b67467fd96d3bb5000abd54e77"
 
 [[projects]]
   digest = "1:318f1c959a8a740366fce4b1e1eb2fd914036b4af58fbd0a003349b305f118ad"
@@ -58,20 +58,20 @@
   version = "v1.0"
 
 [[projects]]
-  digest = "1:2fa7b0155cd54479a755c629de26f888a918e13f8857a2c442205d825368e084"
+  digest = "1:7c084e0e780596dd2a7e20d25803909a9a43689c153de953520dfbc0b0e51166"
   name = "github.com/mattn/go-colorable"
   packages = ["."]
   pruneopts = "UT"
-  revision = "3a70a971f94a22f2fa562ffcc7a0eb45f5daf045"
-  version = "v0.1.1"
+  revision = "8029fb3788e5a4a9c00e415f586a6d033f5d38b3"
+  version = "v0.1.2"
 
 [[projects]]
-  digest = "1:e150b5fafbd7607e2d638e4e5cf43aa4100124e5593385147b0a74e2733d8b0d"
+  digest = "1:9b90c7639a41697f3d4ad12d7d67dfacc9a7a4a6e0bbfae4fc72d0da57c28871"
   name = "github.com/mattn/go-isatty"
   packages = ["."]
   pruneopts = "UT"
-  revision = "c2a7a6ca930a4cd0bc33a3f298eb71960732a3a7"
-  version = "v0.0.7"
+  revision = "1311e847b0cb909da63b5fecfb5370aa66236465"
+  version = "v0.0.8"
 
 [[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
@@ -94,12 +94,12 @@
   revision = "dc11ecdae0a9889dc81a343585516404e8dc6ead"
 
 [[projects]]
-  digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
+  digest = "1:e096613fb7cf34743d49af87d197663cfccd61876e2219853005a57baedfa562"
   name = "github.com/spf13/cobra"
   packages = ["."]
   pruneopts = "UT"
-  revision = "ef82de70bb3f60c65fb8eebacbb2d122ef517385"
-  version = "v0.0.3"
+  revision = "f2b07da1e2c38d5f12845a4f607e2e1018cbb1f5"
+  version = "v0.0.5"
 
 [[projects]]
   digest = "1:c1b1102241e7f645bc8e0c22ae352e8f0dc6484b6cb4d132fa9f24174e0119e2"
@@ -111,22 +111,22 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:2f4e4bfd68413c3d31f4d60c9cba1051e779e990f3c6ba57edf3d7ed22faabb0"
+  digest = "1:e306c31fad110fdf1067da0e38037674c5a268cc21cb370b2d38e1afdbd04b17"
   name = "golang.org/x/crypto"
   packages = [
     "curve25519",
     "hkdf",
   ]
   pruneopts = "UT"
-  revision = "38d8ce5564a5b71b2e3a00553993f1b9a7ae852f"
+  revision = "f99c8df09eb5bff426315721bfa5f16a99cad32c"
 
 [[projects]]
   branch = "master"
-  digest = "1:cf353a5a9ffb2d6f850e9c773e25388a425a70c270546480427ed069e87b136a"
+  digest = "1:8f5108406bc43c7669b0d67d282e40d05c9f268615fcaf8c1f0f76965aa3f09f"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "4b34438f7a67ee5f45cc6132e2bad873a20324e9"
+  revision = "301114b31cced3624480dfb114ca1b495ec69aa5"
 
 [solve-meta]
   analyzer-name = "dep"
