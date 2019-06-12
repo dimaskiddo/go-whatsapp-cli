@@ -19,7 +19,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0a19a1d3c3ec1a8606984b7823b221d4ed3379b32fb3fdbb720f8a85c8557a13"
+  digest = "1:249e130bd2935ed9ed0a4d077e6fae93b4c0c529624922c70114f0b7da89f25e"
   name = "github.com/dimaskiddo/go-whatsapp"
   packages = [
     ".",
@@ -31,7 +31,7 @@
     "crypto/hkdf",
   ]
   pruneopts = "UT"
-  revision = "73abc5146f4863b0883acdaf8d0d980bb42fc005"
+  revision = "03cebb35ec1ae5ff62b131891ea1573e87fffdfd"
 
 [[projects]]
   digest = "1:318f1c959a8a740366fce4b1e1eb2fd914036b4af58fbd0a003349b305f118ad"
