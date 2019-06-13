@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"bytes"
 	"errors"
 	"io/ioutil"
 	"os/exec"
@@ -37,7 +38,30 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 	}
 
 	for _, cmd := range cmdList {
-		if cmd.Path("command").Data() == cmdArray[n] {
+		cmdTypeFound := false
+
+		if cmd.ExistsP("type") {
+			if cmd.Path("type").Data().(string) == "" {
+				return nil, errors.New("command: invalid command type")
+			} else {
+				cmdTypeLists, err := cmd.S("command").Children()
+				if err != nil {
+					return nil, err
+				}
+
+				for _, cmd := range cmdTypeLists {
+					if cmd.Path("name").Data() == cmdArray[n] {
+						cmdTypeFound = true
+					}
+				}
+
+				if !cmdTypeFound {
+					return nil, errors.New("command: command not found in type")
+				}
+			}
+		}
+
+		if cmd.Path("command").Data() == cmdArray[n] || cmdTypeFound {
 			if n < cmdLength && !cmd.ExistsP("cli.param") {
 				if cmd.ExistsP("data") {
 					cmds, err := cmd.S("data").Children()
@@ -88,6 +112,11 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 					cmdBody = "-d " + cmd.Path("curl.body").Data().(string) + " "
 				}
 
+				cmdTrim := true
+				if cmd.ExistsP("curl.trim") {
+					cmdTrim = cmd.Path("curl.trim").Data().(bool)
+				}
+
 				cmdOutput := true
 				if cmd.ExistsP("curl.pretty") {
 					cmdOutput = cmd.Path("curl.pretty").Data().(bool)
@@ -95,7 +124,7 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 
 				cmdCURL := "curl " + cmdMethod + cmdHeader + cmdForm + cmdBody + cmdURL
 
-				cmdExecSplit := SplitWithEscapeN(cmdCURL, " ", -1)
+				cmdExecSplit := SplitWithEscapeN(cmdCURL, " ", -1, cmdTrim)
 				execOutput, err := exec.Command(cmdExecSplit[0], cmdExecSplit[1:]...).Output()
 				if err != nil {
 					return nil, err
@@ -103,7 +132,7 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 
 				outReturn := []string{"There is nothing here, but the request is success 😆"}
 				if len(string(execOutput)) != 0 {
-					outReturn = SplitAfterCharN(string(execOutput), "\n", 2000, -1, cmdOutput)
+					outReturn = SplitAfterCharN(string(execOutput), "\n", 2000, -1, cmdOutput, cmdTrim)
 				}
 
 				if cmd.ExistsP("message") {
@@ -140,23 +169,38 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 					}
 				}
 
+				cmdTrim := true
+				if cmd.ExistsP("cli.trim") {
+					cmdTrim = cmd.Path("cli.trim").Data().(bool)
+				}
+
 				cmdOutput := true
 				if cmd.ExistsP("cli.pretty") {
 					cmdOutput = cmd.Path("cli.pretty").Data().(bool)
 				}
 
-				cmdExecSplit := SplitWithEscapeN(cmdExec, " ", -1)
-				execOutput, err := exec.Command(cmdExecSplit[0], cmdExecSplit[1:]...).Output()
+				cmdExecSplit := SplitWithEscapeN(cmdExec, " ", -1, cmdTrim)
+				cmdRun := exec.Command(cmdExecSplit[0], cmdExecSplit[1:]...)
+
+				var cmdStdout bytes.Buffer
+				var cmdStderr bytes.Buffer
+
+				cmdRun.Stdout = &cmdStdout
+				cmdRun.Stderr = &cmdStderr
+
+				err := cmdRun.Run()
 				if err != nil {
-					return nil, err
+					outReturn := SplitAfterCharN(string(cmdStderr.String()), "\n", 2000, -1, cmdOutput, cmdTrim)
+					return outReturn, err
 				}
+				execOutput := cmdStdout.String()
 
 				outReturn := []string{"There is nothing here, but the execution is success 😆"}
 				if len(string(execOutput)) != 0 {
-					outReturn = SplitAfterCharN(string(execOutput), "\n", 2000, -1, cmdOutput)
+					outReturn = SplitAfterCharN(string(execOutput), "\n", 2000, -1, cmdOutput, cmdTrim)
 				}
 
-				if cmd.ExistsP("message") {
+				if len(string(execOutput)) != 0 && cmd.ExistsP("message") {
 					outReturn[0] = cmd.Path("message").Data().(string) + "\n" + outReturn[0]
 				}
 
@@ -169,12 +213,12 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 					return nil, err
 				}
 
-				outReturn := []string{"Sorry, i got nothing here 😔"}
+				outReturn := []string{"Sorry, i got nothing from the file 😔"}
 				if len(string(execOutput)) != 0 {
-					outReturn = SplitAfterCharN(string(execOutput), "\n", 2000, -1, false)
+					outReturn = SplitAfterCharN(string(execOutput), "\n", 2000, -1, false, true)
 				}
 
-				if cmd.ExistsP("message") {
+				if len(string(execOutput)) != 0 && cmd.ExistsP("message") {
 					outReturn[0] = cmd.Path("message").Data().(string) + "\n" + outReturn[0]
 				}
 

@@ -60,11 +60,15 @@ func (wah *WAHandler) HandleTextMessage(data whatsapp.TextMessage) {
 		return
 	}
 
-	msgCommand := strings.ToLower(msgText[1])
+	msgCommand := msgText[1]
 
 	resText, err := CMDExec(CMDList, strings.Split(msgCommand, " "), 0)
 	if err != nil {
-		resText = append(resText, "Ouch, Got some error here while processing your request 🙈")
+		if len(resText) == 0 {
+			resText = []string{"Ouch, Got some error here while processing your request 🙈"}
+		} else {
+			resText[0] = "Ouch, Got some error here while processing your request 🙈\n" + resText[0]
+		}
 		log.Println(err.Error())
 	}
 
