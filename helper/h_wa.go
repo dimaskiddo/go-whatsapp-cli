@@ -10,7 +10,7 @@ import (
 	"time"
 
 	qrterm "github.com/Baozisoftware/qrcode-terminal-go"
-	whatsapp "github.com/dimaskiddo/go-whatsapp"
+	whatsapp "github.com/Rhymen/go-whatsapp"
 )
 
 var WAConn *whatsapp.Conn
@@ -218,7 +218,7 @@ func WAMessageText(conn *whatsapp.Conn, msgJID string, msgText string, msgDelay 
 
 		<-time.After(time.Duration(msgDelay) * time.Second)
 
-		err := conn.Send(content)
+		_, err := conn.Send(content)
 		if err != nil {
 			return err
 		}

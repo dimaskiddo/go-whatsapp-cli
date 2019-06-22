@@ -35,7 +35,7 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/dimaskiddo/go-whatsapp"
+  name = "github.com/Rhymen/go-whatsapp"
 
 [[constraint]]
   name = "github.com/spf13/cobra"

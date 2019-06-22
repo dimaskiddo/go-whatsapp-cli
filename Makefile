@@ -9,7 +9,6 @@ COMMIT_MSG         := "update improvement"
 
 init:
 	make clean
-	rm -f Gopkg.toml Gopkg.lock
 	dep init -v
 
 ensure:
@@ -29,7 +28,7 @@ clean:
 	rm -rf ./vendor
 
 commit:
-	make init
+	make ensure
 	make clean
 	git add .
 	git commit -am "$(COMMIT_MSG)"
