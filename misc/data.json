@@ -40,7 +40,30 @@
       "command": "ipinfo",
       "message": "Here is your Public IP details:",
       "curl": {
-        "url": "https://ipinfo.io/"
+        "url": "https://ipinfo.io"
+      }
+    },
+    {
+      "command": "httpbin-get",
+      "message": "HTTP Bin GET Result:",
+      "curl": {
+        "url": "https://httpbin.org/get",
+        "method": "GET"
+      }
+    },
+    {
+      "command": "httpbin-post",
+      "message": "HTTP Bin POST Result:",
+      "curl": {
+        "url": "https://httpbin.org/post",
+        "method": "POST",
+        "header": [
+          "hello:world"
+        ],
+        "form": [
+          "foo=bar",
+          "bar=foo"
+        ]
       }
     },
     {

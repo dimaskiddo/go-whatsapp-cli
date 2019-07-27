@@ -1,4 +1,4 @@
-package helper
+package hlp
 
 import (
 	"bytes"
@@ -29,12 +29,12 @@ func CMDParse(file string) ([]*gabs.Container, error) {
 
 func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, error) {
 	if cmdList == nil {
-		return nil, errors.New("command: empty command list")
+		return nil, errors.New("command list is empty")
 	}
 
 	cmdLength := len(cmdArray) - 1
 	if n > cmdLength {
-		return nil, errors.New("command: index out of bound")
+		return nil, errors.New("command index out of bound")
 	}
 
 	for _, cmd := range cmdList {
@@ -42,7 +42,7 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 
 		if cmd.ExistsP("type") {
 			if cmd.Path("type").Data().(string) == "" {
-				return nil, errors.New("command: invalid command type")
+				return nil, errors.New("command type is invalid")
 			} else {
 				cmdTypeLists, err := cmd.S("command").Children()
 				if err != nil {
@@ -56,7 +56,7 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 				}
 
 				if !cmdTypeFound {
-					return nil, errors.New("command: command not found in type")
+					return nil, errors.New("command type is not found")
 				}
 			}
 		}
@@ -72,7 +72,7 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 					return CMDExec(cmds, cmdArray, n+1)
 				}
 
-				return nil, errors.New("command: command not found")
+				return nil, errors.New("command not found")
 			}
 
 			if cmd.ExistsP("curl.url") {
@@ -83,27 +83,27 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 					cmdMethod = "-X " + cmd.Path("curl.method").Data().(string) + " "
 				}
 
-				cmdHeader := "-H 'cache-control: no-cache' "
+				cmdHeader := "-H cache-control:no-cache "
 				if cmd.ExistsP("curl.header") {
-					headers, err := cmd.S("curl.header").Children()
+					headers, err := cmd.Path("curl.header").Children()
 					if err != nil {
 						return nil, err
 					}
 
 					for _, header := range headers {
-						cmdHeader = cmdHeader + "-H '" + header.Data().(string) + "' "
+						cmdHeader = cmdHeader + "-H " + header.Data().(string) + " "
 					}
 				}
 
 				cmdForm := ""
 				if cmd.ExistsP("curl.form") {
-					forms, err := cmd.S("curl.form").Children()
+					forms, err := cmd.Path("curl.form").Children()
 					if err != nil {
 						return nil, err
 					}
 
 					for _, form := range forms {
-						cmdForm = cmdForm + "-F '" + form.Data().(string) + "' "
+						cmdForm = cmdForm + "-F " + form.Data().(string) + " "
 					}
 				}
 
@@ -161,7 +161,7 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 
 						cmdExec = strings.Replace(cmdExec, "<0>", cmdParam, 1)
 					case cmdParamLength < cmdLength-n:
-						return nil, errors.New("command: paramter ouf of bound")
+						return nil, errors.New("command paramters index out of bound")
 					default:
 						for i := 1; i <= cmdParamLength; i++ {
 							cmdExec = strings.Replace(cmdExec, "<"+strconv.Itoa(i)+">", cmdArray[n+i], 1)
@@ -231,5 +231,5 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 		}
 	}
 
-	return nil, errors.New("command: command not found")
+	return nil, errors.New("command not found")
 }

@@ -1,8 +1,7 @@
-package controller
+package ctl
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"strings"
@@ -11,7 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	hlp "github.com/dimaskiddo/go-whatsapp-cli/helper"
+	"github.com/dimaskiddo/go-whatsapp-cli/hlp"
 )
 
 // Daemon Variable Structure
@@ -22,45 +21,42 @@ var Daemon = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 
-		timeout := hlp.GetEnv("WA_TIMEOUT", "int", false)
-		if timeout == nil {
-			timeout, _ = cmd.Flags().GetInt("timeout")
-		}
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 
-		reconnect := hlp.GetEnv("WA_RECONNECT", "int", false)
-		if reconnect == nil {
-			reconnect, _ = cmd.Flags().GetInt("reconnect")
-		}
-
-		test := hlp.GetEnv("WA_TEST", "bool", false)
-		if test == nil {
-			test, _ = cmd.Flags().GetBool("test")
-		}
-
-		hlp.CMDList, err = hlp.CMDParse("./data.json")
+		timeout, err := cmd.Flags().GetInt("timeout")
 		if err != nil {
-			log.Fatalln(strings.ToLower(err.Error()))
+			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
 		}
 
-		file := "./data.gob"
+		reconnect, err := cmd.Flags().GetInt("reconnect")
+		if err != nil {
+			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+		}
 
-		sigchan := make(chan os.Signal, 1)
-		signal.Notify(sigchan, os.Interrupt, syscall.SIGTERM)
+		test, err := cmd.Flags().GetBool("test")
+		if err != nil {
+			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+		}
 
-		log.Println("daemon: starting communication with whatsapp")
+		hlp.CMDList, err = hlp.CMDParse("./misc/data.json")
+		if err != nil {
+			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+		}
 
+		file := "./misc/data.gob"
+
+		hlp.LogPrintln(hlp.LogLevelInfo, "starting communication with whatsapp")
 		for {
 			if hlp.WASessionExist(file) && hlp.WAConn == nil {
-				hlp.WAConn, err = hlp.WASessionInit(timeout.(int))
+				hlp.WAConn, err = hlp.WASessionInit(timeout)
 				if err != nil {
-					log.Println(strings.ToLower(err.Error()))
-					return
+					hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
 				}
 
 				err = hlp.WASessionRestore(hlp.WAConn, file)
 				if err != nil {
-					log.Println(strings.ToLower(err.Error()))
-					return
+					hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
 				}
 
 				msisdn := strings.SplitN(hlp.WAConn.Info.Wid, "@", 2)[0]
@@ -69,14 +65,14 @@ var Daemon = &cobra.Command{
 				jid := msisdn + "@s.whatsapp.net"
 				tag := fmt.Sprintf("@%s", msisdn)
 
-				log.Println("daemon: logged in to whatsapp as " + masked)
+				hlp.LogPrintln(hlp.LogLevelInfo, "logged in to whatsapp as "+masked)
 
-				if test.(bool) {
-					log.Println("daemon: sending test message to " + masked)
+				if test {
+					hlp.LogPrintln(hlp.LogLevelInfo, "sending test message to "+masked)
 
 					err = hlp.WAMessageText(hlp.WAConn, jid, "Welcome to Go WhatsApp CLI\nPlease Test Any Handler Here!", 0)
 					if err != nil {
-						log.Println(strings.ToLower(err.Error()))
+						hlp.LogPrintln(hlp.LogLevelError, err.Error())
 					}
 				}
 
@@ -87,20 +83,20 @@ var Daemon = &cobra.Command{
 					SessionTag:    tag,
 					SessionFile:   file,
 					SessionStart:  uint64(time.Now().Unix()),
-					ReconnectTime: reconnect.(int),
-					IsTest:        test.(bool),
+					ReconnectTime: reconnect,
+					IsTest:        test,
 				})
 			} else if !hlp.WASessionExist(file) && hlp.WAConn != nil {
 				_, _ = hlp.WAConn.Disconnect()
 				hlp.WAConn = nil
 
-				log.Println("daemon: disconnected from whatsapp, missing session file")
+				hlp.LogPrintln(hlp.LogLevelWarn, "disconnected from whatsapp, missing session file")
 			} else if !hlp.WASessionExist(file) && hlp.WAConn == nil {
-				log.Println("daemon: trying to login, waiting for session file...")
+				hlp.LogPrintln(hlp.LogLevelWarn, "trying to login, waiting for session file")
 			}
 
 			select {
-			case <-sigchan:
+			case <-sig:
 				fmt.Println("")
 
 				if hlp.WAConn != nil {
@@ -108,7 +104,7 @@ var Daemon = &cobra.Command{
 				}
 				hlp.WAConn = nil
 
-				log.Println("daemon: terminating process")
+				hlp.LogPrintln(hlp.LogLevelInfo, "terminating process")
 				os.Exit(0)
 			case <-time.After(5 * time.Second):
 			}

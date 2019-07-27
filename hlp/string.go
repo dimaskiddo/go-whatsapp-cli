@@ -1,4 +1,4 @@
-package helper
+package hlp
 
 import (
 	"strings"
@@ -67,7 +67,7 @@ func SplitWithEscapeN(s string, sep string, n int, trim bool) []string {
 				ret[j] = split[i]
 			}
 
-			for (strings.Count(ret[j], "'") == 1 || strings.Count(ret[j], "\"") == 1) && i != len(split)-1 {
+			if (strings.Count(ret[j], "'") == 1 || strings.Count(ret[j], "\"") == 1) && i != len(split)-1 {
 				if trim {
 					ret[j] = ret[j] + sep + strings.TrimSpace(split[i+1])
 				} else {

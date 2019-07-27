@@ -1,4 +1,4 @@
-package controller
+package ctl
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 var Version = &cobra.Command{
 	Use:   "version",
 	Short: "Show current version",
-	Long:  "Go WhatsApp CLI Version",
+	Long:  "Show Current Application Version",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Go WhatsApp CLI Version 1.0")
 	},

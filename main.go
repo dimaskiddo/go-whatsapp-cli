@@ -6,12 +6,12 @@ import (
 
 	"github.com/spf13/cobra"
 
-	ctl "github.com/dimaskiddo/go-whatsapp-cli/controller"
+	"github.com/dimaskiddo/go-whatsapp-cli/ctl"
 )
 
 // Root Variable Structure
 var r = &cobra.Command{
-	Use:   "gowa",
+	Use:   "go-whatsapp",
 	Short: "Go WhatsApp CLI",
 	Long:  "Go WhatsApp CLI",
 	Run: func(cmd *cobra.Command, args []string) {

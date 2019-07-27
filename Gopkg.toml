@@ -34,8 +34,12 @@
   version = "1.4.0"
 
 [[constraint]]
-  branch = "master"
   name = "github.com/Rhymen/go-whatsapp"
+  version = "0.0.2"
+
+[[constraint]]
+  name = "github.com/sirupsen/logrus"
+  version = "1.4.2"
 
 [[constraint]]
   name = "github.com/spf13/cobra"

@@ -1,5 +1,3 @@
-BUILD_OS           := linux
-BUILD_OUTPUT       := gowa
 REBASE_URL         := "github.com/dimaskiddo/go-whatsapp-cli"
 COMMIT_MSG         := "update improvement"
 
@@ -11,20 +9,30 @@ init:
 	make clean
 	dep init -v
 
+init-dist:
+	mkdir -p dist
+	touch dist/.gitkeep
+
 ensure:
 	make clean
 	dep ensure -v
 
-compile:
+release:
 	make ensure
-	CGO_ENABLED=0 GOOS=$(BUILD_OS) go build -a -o ./build/$(BUILD_OUTPUT) *.go
-	echo "Build complete please check build directory."
+	goreleaser --snapshot --skip-publish --rm-dist
+	make init-dist
+	echo "Build complete please check dist directory."
+
+publish:
+	GITHUB_TOKEN=$(GITHUB_TOKEN) goreleaser --rm-dist
+	make init-dist
 
 run:
 	go run *.go
 
 clean:
-	rm -f ./build/$(BUILD_OUTPUT)
+	rm -rf ./dist/*
+	make init-dist
 	rm -rf ./vendor
 
 commit:

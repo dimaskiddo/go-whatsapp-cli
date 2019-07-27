@@ -1,12 +1,9 @@
-package controller
+package ctl
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/spf13/cobra"
 
-	hlp "github.com/dimaskiddo/go-whatsapp-cli/helper"
+	"github.com/dimaskiddo/go-whatsapp-cli/hlp"
 )
 
 // Login Variable Structure
@@ -17,26 +14,24 @@ var Login = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 
-		timeout := hlp.GetEnv("WA_TIMEOUT", "int", false)
-		if timeout == nil {
-			timeout, _ = cmd.Flags().GetInt("timeout")
+		timeout, err := cmd.Flags().GetInt("timeout")
+		if err != nil {
+			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
 		}
 
-		file := "./data.gob"
+		file := "./misc/data.gob"
 
-		conn, err := hlp.WASessionInit(timeout.(int))
+		conn, err := hlp.WASessionInit(timeout)
 		if err != nil {
-			fmt.Println(strings.ToLower(err.Error()))
-			return
+			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
 		}
 
 		err = hlp.WASessionLogin(conn, file)
 		if err != nil {
-			fmt.Println(strings.ToLower(err.Error()))
-			return
+			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
 		}
 
-		fmt.Println("successfully login to whatsapp web")
+		hlp.LogPrintln(hlp.LogLevelInfo, "successfully login to whatsapp web")
 	},
 }
 

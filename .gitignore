@@ -1,2 +1,4 @@
+dist/*
 vendor
+*.DS_Store
 !*.gitkeep
