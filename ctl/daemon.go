@@ -39,12 +39,12 @@ var Daemon = &cobra.Command{
 			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
 		}
 
-		hlp.CMDList, err = hlp.CMDParse("./misc/data.json")
+		hlp.CMDList, err = hlp.CMDParse("./share/commands.json")
 		if err != nil {
 			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
 		}
 
-		file := "./misc/data.gob"
+		file := "./share/session.gob"
 
 		hlp.LogPrintln(hlp.LogLevelInfo, "starting communication with whatsapp")
 		for {

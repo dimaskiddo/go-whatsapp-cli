@@ -19,7 +19,7 @@ var Login = &cobra.Command{
 			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
 		}
 
-		file := "./misc/data.gob"
+		file := "./share/session.gob"
 
 		conn, err := hlp.WASessionInit(timeout)
 		if err != nil {
