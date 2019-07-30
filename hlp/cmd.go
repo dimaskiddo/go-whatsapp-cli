@@ -19,10 +19,7 @@ func CMDParse(file string) ([]*gabs.Container, error) {
 		return nil, err
 	}
 
-	cmds, err := json.S("data").Children()
-	if err != nil {
-		return nil, err
-	}
+	cmds := json.S("data").Children()
 
 	return cmds, nil
 }
@@ -44,10 +41,7 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 			if cmd.Path("type").Data().(string) == "" {
 				return nil, errors.New("command type is invalid")
 			} else {
-				cmdTypeLists, err := cmd.S("command").Children()
-				if err != nil {
-					return nil, err
-				}
+				cmdTypeLists := cmd.S("command").Children()
 
 				for _, cmd := range cmdTypeLists {
 					if cmd.Path("name").Data() == cmdArray[n] {
@@ -64,11 +58,7 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 		if cmd.Path("command").Data() == cmdArray[n] || cmdTypeFound {
 			if n < cmdLength && !cmd.ExistsP("cli.param") {
 				if cmd.ExistsP("data") {
-					cmds, err := cmd.S("data").Children()
-					if err != nil {
-						return nil, err
-					}
-
+					cmds := cmd.S("data").Children()
 					return CMDExec(cmds, cmdArray, n+1)
 				}
 
@@ -85,10 +75,7 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 
 				cmdHeader := "-H cache-control:no-cache "
 				if cmd.ExistsP("curl.header") {
-					headers, err := cmd.Path("curl.header").Children()
-					if err != nil {
-						return nil, err
-					}
+					headers := cmd.Path("curl.header").Children()
 
 					for _, header := range headers {
 						cmdHeader = cmdHeader + "-H " + header.Data().(string) + " "
@@ -97,10 +84,7 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 
 				cmdForm := ""
 				if cmd.ExistsP("curl.form") {
-					forms, err := cmd.Path("curl.form").Children()
-					if err != nil {
-						return nil, err
-					}
+					forms := cmd.Path("curl.form").Children()
 
 					for _, form := range forms {
 						cmdForm = cmdForm + "-F " + form.Data().(string) + " "

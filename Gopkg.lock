@@ -10,15 +10,16 @@
   revision = "c0650d8dff0f053901ff16185217b950d5e7743c"
 
 [[projects]]
-  digest = "1:06f9276c40d85647a9227cbf935f81b763171ca4f60c623ec172d40bce0613fa"
+  digest = "1:060f72218fff094aba8c6c9dcfc5d58494b8126541572a861af1ea0316310d0f"
   name = "github.com/Jeffail/gabs"
   packages = ["."]
   pruneopts = "UT"
-  revision = "636cf72d5e3c0ebad157af7c694469e7d89cec0f"
-  version = "v1.4.0"
+  revision = "e91873001ff8fb4c5f2c60406d81c50991d1924c"
+  version = "v2.1.0"
 
 [[projects]]
-  digest = "1:e2344084195856bc2e4ef1254cb4ae29039108d8ad1b8d71071e4dfe2f6c3b14"
+  branch = "master"
+  digest = "1:ed9d1c8d37f63e326be280690e3cea93e5e1c35894f1b7217a6667d5c97a7823"
   name = "github.com/Rhymen/go-whatsapp"
   packages = [
     ".",
@@ -30,16 +31,15 @@
     "crypto/hkdf",
   ]
   pruneopts = "UT"
-  revision = "c872073bc20e96d3a29f04063efc8f6b6b4b734e"
-  version = "v0.0.2"
+  revision = "5c79b2cf277a8bd805c6018798817a5263f2ae6a"
 
 [[projects]]
-  digest = "1:318f1c959a8a740366fce4b1e1eb2fd914036b4af58fbd0a003349b305f118ad"
+  digest = "1:573ca21d3669500ff845bdebee890eb7fc7f0f50c59f2132f2a0c6b03d85086a"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
   pruneopts = "UT"
-  revision = "b5d812f8a3706043e23a9cd5babf2e5423744d30"
-  version = "v1.3.1"
+  revision = "6c65a5562fc06764971b7c5d05c76c75e84bdbf7"
+  version = "v1.3.2"
 
 [[projects]]
   digest = "1:7b5c6e2eeaa9ae5907c391a91c132abfd5c9e8a784a341b5625e750c67e6825d"
@@ -134,15 +134,15 @@
     "hkdf",
   ]
   pruneopts = "UT"
-  revision = "cc06ce4a13d484c0101a9e92913248488a75786d"
+  revision = "4def268fd1a49955bfb3dda92fe3db4f924f2285"
 
 [[projects]]
   branch = "master"
-  digest = "1:730ba27cd66db3b98ec8f51a6f20d45ec277d490cca36b1f54e31d3fcaf4840e"
+  digest = "1:ec99dad7924bf972656818f5d62216fb987b7e077d401deb86b3c1e5e1b1d4d6"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "04f50cda93cbb67f2afa353c52f342100e80e625"
+  revision = "fc99dfbffb4e5ed5758a37e31dd861afe285406b"
 
 [solve-meta]
   analyzer-name = "dep"
