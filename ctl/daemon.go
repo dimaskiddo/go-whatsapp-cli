@@ -24,19 +24,28 @@ var Daemon = &cobra.Command{
 		sig := make(chan os.Signal, 1)
 		signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 
-		timeout, err := cmd.Flags().GetInt("timeout")
+		timeout, err := hlp.GetEnvInt("WHATSAPP_TIMEOUT")
 		if err != nil {
-			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+			timeout, err = cmd.Flags().GetInt("timeout")
+			if err != nil {
+				hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+			}
 		}
 
-		reconnect, err := cmd.Flags().GetInt("reconnect")
+		reconnect, err := hlp.GetEnvInt("WHATSAPP_RECONNECT")
 		if err != nil {
-			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+			reconnect, err = cmd.Flags().GetInt("reconnect")
+			if err != nil {
+				hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+			}
 		}
 
-		test, err := cmd.Flags().GetBool("test")
+		test, err := hlp.GetEnvBool("WHATSAPP_TEST")
 		if err != nil {
-			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+			test, err = cmd.Flags().GetBool("test")
+			if err != nil {
+				hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+			}
 		}
 
 		hlp.CMDList, err = hlp.CMDParse("./share/commands.json")
@@ -113,7 +122,7 @@ var Daemon = &cobra.Command{
 }
 
 func init() {
-	Daemon.Flags().Int("timeout", 10, "Timeout connection in second(s), can be override using environment variable WA_TIMEOUT")
-	Daemon.Flags().Int("reconnect", 30, "Reconnection time when connection closed in second(s), can be override using environment variable WA_RECONNECT")
-	Daemon.Flags().Bool("test", false, "Test mode (only allow from the same id), can be override using environment variable WA_TEST")
+	Daemon.Flags().Int("timeout", 10, "Timeout connection in second(s). Can be override using WHATSAPP_TIMEOUT environment variable")
+	Daemon.Flags().Int("reconnect", 30, "Reconnection time when connection closed in second(s). Can be override using WHATSAPP_RECONNECT environment variable")
+	Daemon.Flags().Bool("test", false, "Test mode (only allow from the same ID). Can be override using WHATSAPP_TEST environment variable")
 }

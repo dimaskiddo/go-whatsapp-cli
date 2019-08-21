@@ -14,9 +14,12 @@ var Logout = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 
-		timeout, err := cmd.Flags().GetInt("timeout")
+		timeout, err := hlp.GetEnvInt("WHATSAPP_TIMEOUT")
 		if err != nil {
-			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+			timeout, err = cmd.Flags().GetInt("timeout")
+			if err != nil {
+				hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+			}
 		}
 
 		file := "./share/session.gob"
@@ -41,5 +44,5 @@ var Logout = &cobra.Command{
 }
 
 func init() {
-	Logout.Flags().Int("timeout", 10, "Timeout connection in second(s), can be override using environment variable WA_TIMEOUT")
+	Logout.Flags().Int("timeout", 10, "Timeout connection in second(s). Can be override using WHATSAPP_TIMEOUT environment variable")
 }
