@@ -8,11 +8,16 @@ import (
 )
 
 func SanitizeEnv(envName string) (string, error) {
-	if len(envName) != 0 {
-		return strings.TrimSpace(os.Getenv(envName)), nil
+	if len(envName) == 0 {
+		return "", errors.New("environment variable name should not empty")
 	}
 
-	return "", errors.New("environment variable name could not empty")
+	retValue := strings.TrimSpace(os.Getenv(envName))
+	if len(retValue) == 0 {
+		return "", errors.New("environment variable '" + envName + "' has an empty value")
+	}
+
+	return retValue, nil
 }
 
 func GetEnvString(envName string) (string, error) {
