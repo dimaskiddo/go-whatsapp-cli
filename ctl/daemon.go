@@ -56,13 +56,14 @@ var Daemon = &cobra.Command{
 
 		file := "./share/session.gob"
 
-		hlp.LogPrintln(hlp.LogLevelInfo, "starting communication with whatsapp")
 		for {
 			if libs.WASessionExist(file) && libs.WAConn == nil {
 				libs.WAConn, err = libs.WASessionInit(timeout)
 				if err != nil {
 					hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
 				}
+
+				hlp.LogPrintln(hlp.LogLevelInfo, "starting communication with whatsapp")
 
 				err = libs.WASessionRestore(libs.WAConn, file)
 				if err != nil {
@@ -80,7 +81,7 @@ var Daemon = &cobra.Command{
 				if test {
 					hlp.LogPrintln(hlp.LogLevelInfo, "sending test message to "+masked)
 
-					err = libs.WAMessageText(libs.WAConn, jid, "Welcome to Go WhatsApp CLI\nPlease Test Any Handler Here!", 0)
+					err = libs.WAMessageText(libs.WAConn, jid, "Welcome to Go WhatsApp CLI\nPlease Test Any Handler Here!", "", "", 0)
 					if err != nil {
 						hlp.LogPrintln(hlp.LogLevelError, err.Error())
 					}

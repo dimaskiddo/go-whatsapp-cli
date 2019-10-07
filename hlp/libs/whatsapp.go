@@ -10,6 +10,7 @@ import (
 
 	qrterm "github.com/Baozisoftware/qrcode-terminal-go"
 	whatsapp "github.com/Rhymen/go-whatsapp"
+	waproto "github.com/Rhymen/go-whatsapp/binary/proto"
 
 	"github.com/dimaskiddo/go-whatsapp-cli/hlp"
 )
@@ -61,9 +62,7 @@ func (wah *WAHandler) HandleTextMessage(data whatsapp.TextMessage) {
 		return
 	}
 
-	msgCommand := msgText[1]
-
-	resText, err := hlp.CMDExec(hlp.CMDList, strings.Split(msgCommand, " "), 0)
+	resText, err := hlp.CMDExec(hlp.CMDList, strings.Split(msgText[1], " "), 0)
 	if err != nil {
 		if len(resText) == 0 {
 			resText = []string{"Ouch, Got some error here while processing your request 🙈"}
@@ -75,11 +74,24 @@ func (wah *WAHandler) HandleTextMessage(data whatsapp.TextMessage) {
 	}
 
 	for i := 0; i < len(resText); i++ {
-		err := WAMessageText(wah.SessionConn, data.Info.RemoteJid, resText[i], 0)
+		err := WAMessageText(wah.SessionConn, data.Info.RemoteJid, resText[i], data.Info.Id, data.Text, 0)
 		if err != nil {
 			hlp.LogPrintln(hlp.LogLevelError, err.Error())
 		}
 	}
+}
+
+func WASyncVersion(conn *whatsapp.Conn) (string, error) {
+	versionServer, err := whatsapp.CheckCurrentServerVersion()
+	if err != nil {
+		return "", err
+	}
+
+	conn.SetClientVersion(versionServer[0], versionServer[1], versionServer[2])
+	versionClient := conn.GetClientVersion()
+
+	return "whatsapp version " + strconv.Itoa(versionClient[0]) +
+		"." + strconv.Itoa(versionClient[1]) + "." + strconv.Itoa(versionClient[2]), nil
 }
 
 func WASessionInit(timeout int) (*whatsapp.Conn, error) {
@@ -89,7 +101,26 @@ func WASessionInit(timeout int) (*whatsapp.Conn, error) {
 	}
 	conn.SetClientName("Go WhatsApp CLI", "Go WhatsApp")
 
+	info, err := WASyncVersion(conn)
+	if err != nil {
+		return nil, err
+	}
+	hlp.LogPrintln(hlp.LogLevelInfo, info)
+
 	return conn, nil
+}
+
+func WASessionPing(conn *whatsapp.Conn) error {
+	ok, err := conn.AdminTest()
+	if !ok {
+		if err != nil {
+			return err
+		} else {
+			return errors.New("something when wrong while trying to ping, please check phone connectivity")
+		}
+	}
+
+	return nil
 }
 
 func WASessionLoad(file string) (whatsapp.Session, error) {
@@ -158,6 +189,11 @@ func WASessionLogin(conn *whatsapp.Conn, file string) error {
 		if err != nil {
 			return err
 		}
+
+		err = WASessionPing(conn)
+		if err != nil {
+			return err
+		}
 	} else {
 		return errors.New("connection is not valid")
 	}
@@ -187,6 +223,16 @@ func WASessionRestore(conn *whatsapp.Conn, file string) error {
 
 			return err
 		}
+
+		err = WASessionSave(file, session)
+		if err != nil {
+			return err
+		}
+
+		err = WASessionPing(conn)
+		if err != nil {
+			return err
+		}
 	} else {
 		return errors.New("connection is not valid")
 	}
@@ -213,20 +259,42 @@ func WASessionLogout(conn *whatsapp.Conn, file string) error {
 	return nil
 }
 
-func WAMessageText(conn *whatsapp.Conn, msgJID string, msgText string, msgDelay int) error {
+func WAMessageText(conn *whatsapp.Conn, msgJID string, msgText string, msgQuotedID string, msgQuoted string, msgDelay int) error {
 	if conn != nil {
-		content := whatsapp.TextMessage{
-			Info: whatsapp.MessageInfo{
-				RemoteJid: msgJID,
-			},
-			Text: msgText,
+		content := whatsapp.TextMessage{}
+
+		if len(msgQuotedID) != 0 {
+			quoted := &waproto.Message{
+				Conversation: &msgQuoted,
+			}
+
+			content = whatsapp.TextMessage{
+				Info: whatsapp.MessageInfo{
+					RemoteJid:       msgJID,
+					QuotedMessageID: msgQuotedID,
+					QuotedMessage:   *quoted,
+				},
+				Text: msgText,
+			}
+		} else {
+			content = whatsapp.TextMessage{
+				Info: whatsapp.MessageInfo{
+					RemoteJid: msgJID,
+				},
+				Text: msgText,
+			}
 		}
 
 		<-time.After(time.Duration(msgDelay) * time.Second)
 
 		_, err := conn.Send(content)
 		if err != nil {
-			return err
+			switch strings.ToLower(err.Error()) {
+			case "sending message timed out":
+				return nil
+			default:
+				return err
+			}
 		}
 	} else {
 		return errors.New("connection is not valid")
