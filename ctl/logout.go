@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/dimaskiddo/go-whatsapp-cli/hlp"
+	"github.com/dimaskiddo/go-whatsapp-cli/hlp/libs"
 )
 
 // Logout Variable Structure
@@ -24,17 +25,17 @@ var Logout = &cobra.Command{
 
 		file := "./share/session.gob"
 
-		conn, err := hlp.WASessionInit(timeout)
+		conn, err := libs.WASessionInit(timeout)
 		if err != nil {
 			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
 		}
 
-		err = hlp.WASessionRestore(conn, file)
+		err = libs.WASessionRestore(conn, file)
 		if err != nil {
 			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
 		}
 
-		err = hlp.WASessionLogout(conn, file)
+		err = libs.WASessionLogout(conn, file)
 		if err != nil {
 			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
 		}

@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/dimaskiddo/go-whatsapp-cli/hlp"
+	"github.com/dimaskiddo/go-whatsapp-cli/hlp/libs"
 )
 
 // Login Variable Structure
@@ -24,12 +25,12 @@ var Login = &cobra.Command{
 
 		file := "./share/session.gob"
 
-		conn, err := hlp.WASessionInit(timeout)
+		conn, err := libs.WASessionInit(timeout)
 		if err != nil {
 			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
 		}
 
-		err = hlp.WASessionLogin(conn, file)
+		err = libs.WASessionLogin(conn, file)
 		if err != nil {
 			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
 		}

@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/dimaskiddo/go-whatsapp-cli/hlp"
+	"github.com/dimaskiddo/go-whatsapp-cli/hlp/libs"
 )
 
 // Daemon Variable Structure
@@ -57,18 +58,18 @@ var Daemon = &cobra.Command{
 
 		hlp.LogPrintln(hlp.LogLevelInfo, "starting communication with whatsapp")
 		for {
-			if hlp.WASessionExist(file) && hlp.WAConn == nil {
-				hlp.WAConn, err = hlp.WASessionInit(timeout)
+			if libs.WASessionExist(file) && libs.WAConn == nil {
+				libs.WAConn, err = libs.WASessionInit(timeout)
 				if err != nil {
 					hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
 				}
 
-				err = hlp.WASessionRestore(hlp.WAConn, file)
+				err = libs.WASessionRestore(libs.WAConn, file)
 				if err != nil {
 					hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
 				}
 
-				msisdn := strings.SplitN(hlp.WAConn.Info.Wid, "@", 2)[0]
+				msisdn := strings.SplitN(libs.WAConn.Info.Wid, "@", 2)[0]
 				masked := msisdn[0:len(msisdn)-3] + "xxx"
 
 				jid := msisdn + "@s.whatsapp.net"
@@ -79,15 +80,15 @@ var Daemon = &cobra.Command{
 				if test {
 					hlp.LogPrintln(hlp.LogLevelInfo, "sending test message to "+masked)
 
-					err = hlp.WAMessageText(hlp.WAConn, jid, "Welcome to Go WhatsApp CLI\nPlease Test Any Handler Here!", 0)
+					err = libs.WAMessageText(libs.WAConn, jid, "Welcome to Go WhatsApp CLI\nPlease Test Any Handler Here!", 0)
 					if err != nil {
 						hlp.LogPrintln(hlp.LogLevelError, err.Error())
 					}
 				}
 
 				<-time.After(time.Second)
-				hlp.WAConn.AddHandler(&hlp.WAHandler{
-					SessionConn:   hlp.WAConn,
+				libs.WAConn.AddHandler(&libs.WAHandler{
+					SessionConn:   libs.WAConn,
 					SessionJid:    jid,
 					SessionTag:    tag,
 					SessionFile:   file,
@@ -95,12 +96,12 @@ var Daemon = &cobra.Command{
 					ReconnectTime: reconnect,
 					IsTest:        test,
 				})
-			} else if !hlp.WASessionExist(file) && hlp.WAConn != nil {
-				_, _ = hlp.WAConn.Disconnect()
-				hlp.WAConn = nil
+			} else if !libs.WASessionExist(file) && libs.WAConn != nil {
+				_, _ = libs.WAConn.Disconnect()
+				libs.WAConn = nil
 
 				hlp.LogPrintln(hlp.LogLevelWarn, "disconnected from whatsapp, missing session file")
-			} else if !hlp.WASessionExist(file) && hlp.WAConn == nil {
+			} else if !libs.WASessionExist(file) && libs.WAConn == nil {
 				hlp.LogPrintln(hlp.LogLevelWarn, "trying to login, waiting for session file")
 			}
 
@@ -108,10 +109,10 @@ var Daemon = &cobra.Command{
 			case <-sig:
 				fmt.Println("")
 
-				if hlp.WAConn != nil {
-					_, _ = hlp.WAConn.Disconnect()
+				if libs.WAConn != nil {
+					_, _ = libs.WAConn.Disconnect()
 				}
-				hlp.WAConn = nil
+				libs.WAConn = nil
 
 				hlp.LogPrintln(hlp.LogLevelInfo, "terminating process")
 				os.Exit(0)
