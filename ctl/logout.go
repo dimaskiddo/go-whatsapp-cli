@@ -25,10 +25,11 @@ var Logout = &cobra.Command{
 
 		file := "./share/session.gob"
 
-		conn, err := libs.WASessionInit(timeout)
+		conn, info, err := libs.WASessionInit(timeout)
 		if err != nil {
 			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
 		}
+		hlp.LogPrintln(hlp.LogLevelInfo, info)
 
 		err = libs.WASessionRestore(conn, file)
 		if err != nil {

@@ -3,6 +3,7 @@ package libs
 import (
 	"encoding/gob"
 	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -90,24 +91,22 @@ func WASyncVersion(conn *whatsapp.Conn) (string, error) {
 	conn.SetClientVersion(versionServer[0], versionServer[1], versionServer[2])
 	versionClient := conn.GetClientVersion()
 
-	return "whatsapp version " + strconv.Itoa(versionClient[0]) +
-		"." + strconv.Itoa(versionClient[1]) + "." + strconv.Itoa(versionClient[2]), nil
+	return fmt.Sprintf("whatsapp version %v.%v.%v", versionClient[0], versionClient[1], versionClient[2]), nil
 }
 
-func WASessionInit(timeout int) (*whatsapp.Conn, error) {
+func WASessionInit(timeout int) (*whatsapp.Conn, string, error) {
 	conn, err := whatsapp.NewConn(time.Duration(timeout) * time.Second)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	conn.SetClientName("Go WhatsApp CLI", "Go WhatsApp")
 
 	info, err := WASyncVersion(conn)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	hlp.LogPrintln(hlp.LogLevelInfo, info)
 
-	return conn, nil
+	return conn, info, nil
 }
 
 func WASessionPing(conn *whatsapp.Conn) error {

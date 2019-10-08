@@ -58,10 +58,13 @@ var Daemon = &cobra.Command{
 
 		for {
 			if libs.WASessionExist(file) && libs.WAConn == nil {
-				libs.WAConn, err = libs.WASessionInit(timeout)
+				var info string
+
+				libs.WAConn, info, err = libs.WASessionInit(timeout)
 				if err != nil {
 					hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
 				}
+				hlp.LogPrintln(hlp.LogLevelInfo, info)
 
 				hlp.LogPrintln(hlp.LogLevelInfo, "starting communication with whatsapp")
 
