@@ -127,7 +127,7 @@ var Daemon = &cobra.Command{
 }
 
 func init() {
-	Daemon.Flags().Int("timeout", 10, "Timeout connection in second(s). Can be override using WHATSAPP_TIMEOUT environment variable")
+	Daemon.Flags().Int("timeout", 5, "Timeout connection in second(s). Can be override using WHATSAPP_TIMEOUT environment variable")
 	Daemon.Flags().Int("reconnect", 30, "Reconnection time when connection closed in second(s). Can be override using WHATSAPP_RECONNECT environment variable")
 	Daemon.Flags().Bool("test", false, "Test mode (only allow from the same ID). Can be override using WHATSAPP_TEST environment variable")
 }

@@ -94,6 +94,19 @@ func WASyncVersion(conn *whatsapp.Conn) (string, error) {
 	return fmt.Sprintf("whatsapp version %v.%v.%v", versionClient[0], versionClient[1], versionClient[2]), nil
 }
 
+func WATestPing(conn *whatsapp.Conn) error {
+	ok, err := conn.AdminTest()
+	if !ok {
+		if err != nil {
+			return err
+		} else {
+			return errors.New("something when wrong while trying to ping, please check phone connectivity")
+		}
+	}
+
+	return nil
+}
+
 func WASessionInit(timeout int) (*whatsapp.Conn, string, error) {
 	conn, err := whatsapp.NewConn(time.Duration(timeout) * time.Second)
 	if err != nil {
@@ -107,19 +120,6 @@ func WASessionInit(timeout int) (*whatsapp.Conn, string, error) {
 	}
 
 	return conn, info, nil
-}
-
-func WASessionPing(conn *whatsapp.Conn) error {
-	ok, err := conn.AdminTest()
-	if !ok {
-		if err != nil {
-			return err
-		} else {
-			return errors.New("something when wrong while trying to ping, please check phone connectivity")
-		}
-	}
-
-	return nil
 }
 
 func WASessionLoad(file string) (whatsapp.Session, error) {
@@ -189,7 +189,7 @@ func WASessionLogin(conn *whatsapp.Conn, file string) error {
 			return err
 		}
 
-		err = WASessionPing(conn)
+		err = WATestPing(conn)
 		if err != nil {
 			return err
 		}
@@ -228,7 +228,7 @@ func WASessionRestore(conn *whatsapp.Conn, file string) error {
 			return err
 		}
 
-		err = WASessionPing(conn)
+		err = WATestPing(conn)
 		if err != nil {
 			return err
 		}
@@ -260,28 +260,20 @@ func WASessionLogout(conn *whatsapp.Conn, file string) error {
 
 func WAMessageText(conn *whatsapp.Conn, msgJID string, msgText string, msgQuotedID string, msgQuoted string, msgDelay int) error {
 	if conn != nil {
-		content := whatsapp.TextMessage{}
+		content := whatsapp.TextMessage{
+			Info: whatsapp.MessageInfo{
+				RemoteJid: msgJID,
+			},
+			Text: msgText,
+		}
 
 		if len(msgQuotedID) != 0 {
-			quoted := &waproto.Message{
+			pntQuotedMsg := &waproto.Message{
 				Conversation: &msgQuoted,
 			}
 
-			content = whatsapp.TextMessage{
-				Info: whatsapp.MessageInfo{
-					RemoteJid:       msgJID,
-					QuotedMessageID: msgQuotedID,
-					QuotedMessage:   *quoted,
-				},
-				Text: msgText,
-			}
-		} else {
-			content = whatsapp.TextMessage{
-				Info: whatsapp.MessageInfo{
-					RemoteJid: msgJID,
-				},
-				Text: msgText,
-			}
+			content.Info.QuotedMessageID = msgQuotedID
+			content.Info.QuotedMessage = *pntQuotedMsg
 		}
 
 		<-time.After(time.Duration(msgDelay) * time.Second)

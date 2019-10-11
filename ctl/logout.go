@@ -46,5 +46,5 @@ var Logout = &cobra.Command{
 }
 
 func init() {
-	Logout.Flags().Int("timeout", 10, "Timeout connection in second(s). Can be override using WHATSAPP_TIMEOUT environment variable")
+	Logout.Flags().Int("timeout", 5, "Timeout connection in second(s). Can be override using WHATSAPP_TIMEOUT environment variable")
 }
