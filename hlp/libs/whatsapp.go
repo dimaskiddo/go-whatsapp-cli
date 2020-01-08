@@ -268,12 +268,17 @@ func WAMessageText(conn *whatsapp.Conn, msgJID string, msgText string, msgQuoted
 		}
 
 		if len(msgQuotedID) != 0 {
-			pntQuotedMsg := &waproto.Message{
+			msgQuotedProto := waproto.Message{
 				Conversation: &msgQuoted,
 			}
 
-			content.Info.QuotedMessageID = msgQuotedID
-			content.Info.QuotedMessage = *pntQuotedMsg
+			ctxQuotedInfo := whatsapp.ContextInfo{
+				QuotedMessageID: msgQuotedID,
+				QuotedMessage:   &msgQuotedProto,
+				Participant:     msgJID,
+			}
+
+			content.ContextInfo = ctxQuotedInfo
 		}
 
 		<-time.After(time.Duration(msgDelay) * time.Second)

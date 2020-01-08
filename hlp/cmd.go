@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Jeffail/gabs"
+	gabs "github.com/Jeffail/gabs/v2"
 )
 
 var CMDList []*gabs.Container
