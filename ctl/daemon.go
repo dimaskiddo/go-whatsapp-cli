@@ -25,6 +25,30 @@ var Daemon = &cobra.Command{
 		sig := make(chan os.Signal, 1)
 		signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 
+		clientVersionMajor, err := hlp.GetEnvInt("WHATSAPP_CLIENT_VERSION_MAJOR")
+		if err != nil {
+			clientVersionMajor, err = cmd.Flags().GetInt("client-version-major")
+			if err != nil {
+				hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+			}
+		}
+
+		clientVersionMinor, err := hlp.GetEnvInt("WHATSAPP_CLIENT_VERSION_MINOR")
+		if err != nil {
+			clientVersionMinor, err = cmd.Flags().GetInt("client-version-minor")
+			if err != nil {
+				hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+			}
+		}
+
+		clientVersionBuild, err := hlp.GetEnvInt("WHATSAPP_CLIENT_VERSION_BUILD")
+		if err != nil {
+			clientVersionBuild, err = cmd.Flags().GetInt("client-version-build")
+			if err != nil {
+				hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+			}
+		}
+
 		timeout, err := hlp.GetEnvInt("WHATSAPP_TIMEOUT")
 		if err != nil {
 			timeout, err = cmd.Flags().GetInt("timeout")
@@ -60,7 +84,7 @@ var Daemon = &cobra.Command{
 			if libs.WASessionExist(file) && libs.WAConn == nil {
 				var info string
 
-				libs.WAConn, info, err = libs.WASessionInit(timeout)
+				libs.WAConn, info, err = libs.WASessionInit(clientVersionMajor, clientVersionMinor, clientVersionBuild, timeout)
 				if err != nil {
 					hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
 				}
@@ -127,6 +151,10 @@ var Daemon = &cobra.Command{
 }
 
 func init() {
+	Daemon.Flags().Int("client-version-major", 0, "WhatsApp Client major version. Can be override using WHATSAPP_CLIENT_VERSION_MAJOR environment variable")
+	Daemon.Flags().Int("client-version-minor", 4, "WhatsApp Client minor version. Can be override using WHATSAPP_CLIENT_VERSION_MINOR environment variable")
+	Daemon.Flags().Int("client-version-build", 1300, "WhatsApp Client build version. Can be override using WHATSAPP_CLIENT_VERSION_BUILD environment variable")
+
 	Daemon.Flags().Int("timeout", 5, "Timeout connection in second(s). Can be override using WHATSAPP_TIMEOUT environment variable")
 	Daemon.Flags().Int("reconnect", 30, "Reconnection time when connection closed in second(s). Can be override using WHATSAPP_RECONNECT environment variable")
 	Daemon.Flags().Bool("test", false, "Test mode (only allow from the same ID). Can be override using WHATSAPP_TEST environment variable")

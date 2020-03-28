@@ -4,9 +4,11 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	qrterm "github.com/Baozisoftware/qrcode-terminal-go"
@@ -17,6 +19,7 @@ import (
 )
 
 var WAConn *whatsapp.Conn
+var wacMutex *sync.Mutex
 
 type WAHandler struct {
 	SessionConn   *whatsapp.Conn
@@ -82,13 +85,36 @@ func (wah *WAHandler) HandleTextMessage(data whatsapp.TextMessage) {
 	}
 }
 
-func WASyncVersion(conn *whatsapp.Conn) (string, error) {
-	versionServer, err := whatsapp.CheckCurrentServerVersion()
-	if err != nil {
-		return "", err
-	}
+func WAGetSendMutexSleep() time.Duration {
+	rand.Seed(time.Now().UnixNano())
 
-	conn.SetClientVersion(versionServer[0], versionServer[1], versionServer[2])
+	min := 2000
+	max := 5000
+
+	return time.Duration(rand.Intn(max-min+100) + min)
+}
+
+func WASendWithMutex(conn *whatsapp.Conn, content interface{}) (string, error) {
+	wacMutex = &sync.Mutex{}
+	wacMutex.Lock()
+
+	time.Sleep(WAGetSendMutexSleep() * time.Millisecond)
+
+	id, err := conn.Send(content)
+	wacMutex.Unlock()
+
+	return id, err
+}
+
+func WASyncVersion(conn *whatsapp.Conn, versionClientMajor int, versionClientMinor int, versionClientBuild int) (string, error) {
+	// Bug Happend When Using This Function
+	// Then Set Manualy WhatsApp Client Version
+	// versionServer, err := whatsapp.CheckCurrentServerVersion()
+	// if err != nil {
+	// 	return "", err
+	// }
+
+	conn.SetClientVersion(versionClientMajor, versionClientMinor, versionClientBuild)
 	versionClient := conn.GetClientVersion()
 
 	return fmt.Sprintf("whatsapp version %v.%v.%v", versionClient[0], versionClient[1], versionClient[2]), nil
@@ -107,14 +133,14 @@ func WATestPing(conn *whatsapp.Conn) error {
 	return nil
 }
 
-func WASessionInit(timeout int) (*whatsapp.Conn, string, error) {
+func WASessionInit(versionClientMajor int, versionClientMinor int, versionClientBuild int, timeout int) (*whatsapp.Conn, string, error) {
 	conn, err := whatsapp.NewConn(time.Duration(timeout) * time.Second)
 	if err != nil {
 		return nil, "", err
 	}
 	conn.SetClientName("Go WhatsApp CLI", "Go WhatsApp")
 
-	info, err := WASyncVersion(conn)
+	info, err := WASyncVersion(conn, versionClientMajor, versionClientMinor, versionClientBuild)
 	if err != nil {
 		return nil, "", err
 	}
@@ -283,7 +309,7 @@ func WAMessageText(conn *whatsapp.Conn, msgJID string, msgText string, msgQuoted
 
 		<-time.After(time.Duration(msgDelay) * time.Second)
 
-		_, err := conn.Send(content)
+		_, err := WASendWithMutex(conn, content)
 		if err != nil {
 			switch strings.ToLower(err.Error()) {
 			case "sending message timed out":
