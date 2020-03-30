@@ -19,7 +19,7 @@ import (
 )
 
 var WAConn *whatsapp.Conn
-var wacMutex *sync.Mutex
+var WACMutex *sync.Mutex
 
 type WAHandler struct {
 	SessionConn   *whatsapp.Conn
@@ -85,23 +85,37 @@ func (wah *WAHandler) HandleTextMessage(data whatsapp.TextMessage) {
 	}
 }
 
+func WAParseJID(jid string) string {
+	components := strings.Split(jid, "@")
+
+	if len(components) > 1 {
+		jid = components[0]
+	}
+
+	suffix := "@s.whatsapp.net"
+
+	if len(strings.SplitN(jid, "-", 2)) == 2 {
+		suffix = "@g.us"
+	}
+
+	return jid + suffix
+}
+
 func WAGetSendMutexSleep() time.Duration {
 	rand.Seed(time.Now().UnixNano())
 
-	min := 2000
-	max := 5000
+	waitMin := 1000
+	waitMax := 3000
 
-	return time.Duration(rand.Intn(max-min+100) + min)
+	return time.Duration(rand.Intn(waitMax-rand.Intn(waitMin)) + waitMin)
 }
 
 func WASendWithMutex(conn *whatsapp.Conn, content interface{}) (string, error) {
-	wacMutex = &sync.Mutex{}
-	wacMutex.Lock()
-
+	WACMutex.Lock()
 	time.Sleep(WAGetSendMutexSleep() * time.Millisecond)
 
 	id, err := conn.Send(content)
-	wacMutex.Unlock()
+	WACMutex.Unlock()
 
 	return id, err
 }
@@ -125,9 +139,9 @@ func WATestPing(conn *whatsapp.Conn) error {
 	if !ok {
 		if err != nil {
 			return err
-		} else {
-			return errors.New("something when wrong while trying to ping, please check phone connectivity")
 		}
+
+		return errors.New("something when wrong while trying to ping, please check phone connectivity")
 	}
 
 	return nil
@@ -144,6 +158,8 @@ func WASessionInit(versionClientMajor int, versionClientMinor int, versionClient
 	if err != nil {
 		return nil, "", err
 	}
+
+	WACMutex = &sync.Mutex{}
 
 	return conn, info, nil
 }
@@ -284,42 +300,51 @@ func WASessionLogout(conn *whatsapp.Conn, file string) error {
 	return nil
 }
 
+func WASessionValidate(conn *whatsapp.Conn) error {
+	if conn == nil {
+		return errors.New("connection is invalid")
+	}
+
+	return nil
+}
+
 func WAMessageText(conn *whatsapp.Conn, msgJID string, msgText string, msgQuotedID string, msgQuoted string, msgDelay int) error {
-	if conn != nil {
-		content := whatsapp.TextMessage{
-			Info: whatsapp.MessageInfo{
-				RemoteJid: msgJID,
-			},
-			Text: msgText,
+	err := WASessionValidate(conn)
+	if err != nil {
+		return errors.New(err.Error())
+	}
+
+	rJID := WAParseJID(msgJID)
+
+	content := whatsapp.TextMessage{
+		Info: whatsapp.MessageInfo{
+			RemoteJid: rJID,
+		},
+		Text: msgText,
+	}
+
+	if len(msgQuotedID) != 0 {
+		msgQuotedProto := waproto.Message{
+			Conversation: &msgQuoted,
 		}
 
-		if len(msgQuotedID) != 0 {
-			msgQuotedProto := waproto.Message{
-				Conversation: &msgQuoted,
-			}
-
-			ctxQuotedInfo := whatsapp.ContextInfo{
-				QuotedMessageID: msgQuotedID,
-				QuotedMessage:   &msgQuotedProto,
-				Participant:     msgJID,
-			}
-
-			content.ContextInfo = ctxQuotedInfo
+		ctxQuotedInfo := whatsapp.ContextInfo{
+			QuotedMessageID: msgQuotedID,
+			QuotedMessage:   &msgQuotedProto,
+			Participant:     msgJID,
 		}
 
-		<-time.After(time.Duration(msgDelay) * time.Second)
+		content.ContextInfo = ctxQuotedInfo
+	}
 
-		_, err := WASendWithMutex(conn, content)
-		if err != nil {
-			switch strings.ToLower(err.Error()) {
-			case "sending message timed out":
-				return nil
-			default:
-				return err
-			}
+	_, err = WASendWithMutex(conn, content)
+	if err != nil {
+		switch strings.ToLower(err.Error()) {
+		case "sending message timed out":
+			return nil
+		default:
+			return err
 		}
-	} else {
-		return errors.New("connection is not valid")
 	}
 
 	return nil
