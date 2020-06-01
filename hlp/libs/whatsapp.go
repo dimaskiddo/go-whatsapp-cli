@@ -152,7 +152,7 @@ func WASessionInit(versionClientMajor int, versionClientMinor int, versionClient
 	if err != nil {
 		return nil, "", err
 	}
-	conn.SetClientName("Go WhatsApp CLI", "Go WhatsApp")
+  conn.SetClientName("Go WhatsApp CLI", "Go WhatsApp", "1.0")
 
 	info, err := WASyncVersion(conn, versionClientMajor, versionClientMinor, versionClientBuild)
 	if err != nil {
