@@ -5,7 +5,7 @@ go 1.12
 require (
 	github.com/Baozisoftware/qrcode-terminal-go v0.0.0-20170407111555-c0650d8dff0f
 	github.com/Jeffail/gabs/v2 v2.5.1
-	github.com/Rhymen/go-whatsapp v0.1.1-0.20200530223338-81a5d3ee6e85
+	github.com/Rhymen/go-whatsapp v0.1.1-0.20200604063454-9b4bc38abf9f
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/cobra v1.0.0
 )

@@ -78,7 +78,7 @@ func (wah *WAHandler) HandleTextMessage(data whatsapp.TextMessage) {
 	}
 
 	for i := 0; i < len(resText); i++ {
-		err := WAMessageText(wah.SessionConn, data.Info.RemoteJid, resText[i], data.Info.Id, data.Text, 0)
+		err := WAMessageText(wah.SessionConn, data.Info.RemoteJid, resText[i], data.Info.Id, data.Text)
 		if err != nil {
 			hlp.LogPrintln(hlp.LogLevelError, err.Error())
 		}
@@ -152,7 +152,7 @@ func WASessionInit(versionClientMajor int, versionClientMinor int, versionClient
 	if err != nil {
 		return nil, "", err
 	}
-  conn.SetClientName("Go WhatsApp CLI", "Go WhatsApp", "1.0")
+	conn.SetClientName("Go WhatsApp CLI", "Go WhatsApp", "1.0")
 
 	info, err := WASyncVersion(conn, versionClientMajor, versionClientMinor, versionClientBuild)
 	if err != nil {
@@ -308,7 +308,7 @@ func WASessionValidate(conn *whatsapp.Conn) error {
 	return nil
 }
 
-func WAMessageText(conn *whatsapp.Conn, msgJID string, msgText string, msgQuotedID string, msgQuoted string, msgDelay int) error {
+func WAMessageText(conn *whatsapp.Conn, msgJID string, msgText string, msgQuotedID string, msgQuoted string) error {
 	err := WASessionValidate(conn)
 	if err != nil {
 		return errors.New(err.Error())

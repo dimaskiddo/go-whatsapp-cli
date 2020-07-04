@@ -108,7 +108,7 @@ var Daemon = &cobra.Command{
 				if test {
 					hlp.LogPrintln(hlp.LogLevelInfo, "sending test message to "+masked)
 
-					err = libs.WAMessageText(libs.WAConn, jid, "Welcome to Go WhatsApp CLI\nPlease Test Any Handler Here!", "", "", 0)
+					err = libs.WAMessageText(libs.WAConn, jid, "Welcome to Go WhatsApp CLI\nPlease Test Any Handler Here!", "", "")
 					if err != nil {
 						hlp.LogPrintln(hlp.LogLevelError, err.Error())
 					}
