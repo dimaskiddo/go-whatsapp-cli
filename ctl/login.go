@@ -65,9 +65,9 @@ var Login = &cobra.Command{
 }
 
 func init() {
-	Login.Flags().Int("client-version-major", 0, "WhatsApp Client major version. Can be override using WHATSAPP_CLIENT_VERSION_MAJOR environment variable")
-	Login.Flags().Int("client-version-minor", 4, "WhatsApp Client minor version. Can be override using WHATSAPP_CLIENT_VERSION_MINOR environment variable")
-	Login.Flags().Int("client-version-build", 1300, "WhatsApp Client build version. Can be override using WHATSAPP_CLIENT_VERSION_BUILD environment variable")
+	Login.Flags().Int("client-version-major", 2, "WhatsApp Client major version. Can be override using WHATSAPP_CLIENT_VERSION_MAJOR environment variable")
+	Login.Flags().Int("client-version-minor", 2035, "WhatsApp Client minor version. Can be override using WHATSAPP_CLIENT_VERSION_MINOR environment variable")
+	Login.Flags().Int("client-version-build", 15, "WhatsApp Client build version. Can be override using WHATSAPP_CLIENT_VERSION_BUILD environment variable")
 
 	Login.Flags().Int("timeout", 5, "Timeout connection in second(s). Can be override using WHATSAPP_TIMEOUT environment variable")
 }

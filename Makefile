@@ -7,7 +7,7 @@ COMMIT_MSG         := "update improvement"
 
 init:
 	make clean
-	go mod init
+	GO111MODULE=on go mod init
 
 init-dist:
 	mkdir -p dist
@@ -15,7 +15,7 @@ init-dist:
 
 vendor:
 	make clean
-	go mod vendor
+	GO111MODULE=on go mod vendor
 
 release:
 	make vendor
