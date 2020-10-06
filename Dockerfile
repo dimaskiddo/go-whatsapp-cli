@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 COPY . ./
 
 RUN go mod download \
-    && CGO_ENABLED=0 GOOS=linux go build -a -o go-whatsapp-cli cmd/main/main.go
+    && CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -a -o main cmd/main/main.go
 
 
 # Final Image
@@ -15,8 +15,15 @@ RUN go mod download \
 FROM dimaskiddo/alpine:base
 MAINTAINER Dimas Restu Hidayanto <dimas.restu@student.upi.edu>
 
-WORKDIR /usr/app
+ARG SERVICE_NAME="go-whatsapp-cli"
+ENV PATH="$PATH:/usr/app/${SERVICE_NAME}"
 
-COPY --from=go-builder /usr/src/app/go-whatsapp-cli ./go-whatsapp-cli
+WORKDIR /usr/app/${SERVICE_NAME}
 
-CMD ["./go-whatsapp-cli"]
+COPY --from=go-builder /usr/src/app/config/ ./config
+COPY --from=go-builder /usr/src/app/main ./go-whatsapp-cli
+
+RUN chmod 777 config/stores
+
+VOLUME ["/usr/app/config/stores"]
+CMD ["go-whatsapp-cli","daemon"]

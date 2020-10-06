@@ -1,3 +1,5 @@
+BUILD_CGO_ENABLED  := 0
+SERVICE_NAME       := go-whatsapp-cli
 REBASE_URL         := "github.com/dimaskiddo/go-whatsapp-cli"
 COMMIT_MSG         := "update improvement"
 
@@ -20,12 +22,18 @@ release:
 	make vendor
 	make clean-dist
 	goreleaser --snapshot --skip-publish --rm-dist
-	echo "Release complete please check dist directory."
+	echo "Release '$(SERVICE_NAME)' complete, please check dist directory."
 
 publish:
+	make vendor
 	make clean-dist
 	GITHUB_TOKEN=$(GITHUB_TOKEN) goreleaser --rm-dist
-	echo "Publish complete please check your repository releases."
+	echo "Publish '$(SERVICE_NAME)' complete, please check your repository releases."
+
+build:
+	make vendor
+	CGO_ENABLED=$(BUILD_CGO_ENABLED) go build -ldflags="-s -w" -a -o $(SERVICE_NAME) cmd/main/main.go
+	echo "Build '$(SERVICE_NAME)' complete."
 
 run:
 	go run cmd/main/main.go
