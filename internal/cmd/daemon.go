@@ -1,4 +1,4 @@
-package ctl
+package cmd
 
 import (
 	"fmt"
@@ -10,8 +10,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/dimaskiddo/go-whatsapp-cli/hlp"
-	"github.com/dimaskiddo/go-whatsapp-cli/hlp/libs"
+	"github.com/dimaskiddo/go-whatsapp-cli/pkg/env"
+	"github.com/dimaskiddo/go-whatsapp-cli/pkg/log"
+	"github.com/dimaskiddo/go-whatsapp-cli/pkg/parser"
+	"github.com/dimaskiddo/go-whatsapp-cli/pkg/whatsapp"
 )
 
 // Daemon Variable Structure
@@ -25,98 +27,98 @@ var Daemon = &cobra.Command{
 		sig := make(chan os.Signal, 1)
 		signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 
-		clientVersionMajor, err := hlp.GetEnvInt("WHATSAPP_CLIENT_VERSION_MAJOR")
+		clientVersionMajor, err := env.GetEnvInt("WHATSAPP_CLIENT_VERSION_MAJOR")
 		if err != nil {
 			clientVersionMajor, err = cmd.Flags().GetInt("client-version-major")
 			if err != nil {
-				hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+				log.Println(log.LogLevelFatal, err.Error())
 			}
 		}
 
-		clientVersionMinor, err := hlp.GetEnvInt("WHATSAPP_CLIENT_VERSION_MINOR")
+		clientVersionMinor, err := env.GetEnvInt("WHATSAPP_CLIENT_VERSION_MINOR")
 		if err != nil {
 			clientVersionMinor, err = cmd.Flags().GetInt("client-version-minor")
 			if err != nil {
-				hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+				log.Println(log.LogLevelFatal, err.Error())
 			}
 		}
 
-		clientVersionBuild, err := hlp.GetEnvInt("WHATSAPP_CLIENT_VERSION_BUILD")
+		clientVersionBuild, err := env.GetEnvInt("WHATSAPP_CLIENT_VERSION_BUILD")
 		if err != nil {
 			clientVersionBuild, err = cmd.Flags().GetInt("client-version-build")
 			if err != nil {
-				hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+				log.Println(log.LogLevelFatal, err.Error())
 			}
 		}
 
-		timeout, err := hlp.GetEnvInt("WHATSAPP_TIMEOUT")
+		timeout, err := env.GetEnvInt("WHATSAPP_TIMEOUT")
 		if err != nil {
 			timeout, err = cmd.Flags().GetInt("timeout")
 			if err != nil {
-				hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+				log.Println(log.LogLevelFatal, err.Error())
 			}
 		}
 
-		reconnect, err := hlp.GetEnvInt("WHATSAPP_RECONNECT")
+		reconnect, err := env.GetEnvInt("WHATSAPP_RECONNECT")
 		if err != nil {
 			reconnect, err = cmd.Flags().GetInt("reconnect")
 			if err != nil {
-				hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+				log.Println(log.LogLevelFatal, err.Error())
 			}
 		}
 
-		test, err := hlp.GetEnvBool("WHATSAPP_TEST")
+		test, err := env.GetEnvBool("WHATSAPP_TEST")
 		if err != nil {
 			test, err = cmd.Flags().GetBool("test")
 			if err != nil {
-				hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+				log.Println(log.LogLevelFatal, err.Error())
 			}
 		}
 
-		hlp.CMDList, err = hlp.CMDParse("./share/commands.json")
+		parser.JSONList, err = parser.JSONParse("./config/json/cmds.json")
 		if err != nil {
-			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+			log.Println(log.LogLevelFatal, err.Error())
 		}
 
-		file := "./share/session.gob"
+		file := "./config/stores/session.gob"
 
 		for {
-			if libs.WASessionExist(file) && libs.WAConn == nil {
+			if whatsapp.WASessionExist(file) && whatsapp.WAConn == nil {
 				var info string
 
-				libs.WAConn, info, err = libs.WASessionInit(clientVersionMajor, clientVersionMinor, clientVersionBuild, timeout)
+				whatsapp.WAConn, info, err = whatsapp.WASessionInit(clientVersionMajor, clientVersionMinor, clientVersionBuild, timeout)
 				if err != nil {
-					hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+					log.Println(log.LogLevelFatal, err.Error())
 				}
-				hlp.LogPrintln(hlp.LogLevelInfo, info)
+				log.Println(log.LogLevelInfo, info)
 
-				hlp.LogPrintln(hlp.LogLevelInfo, "starting communication with whatsapp")
+				log.Println(log.LogLevelInfo, "starting communication with whatsapp")
 
-				err = libs.WASessionRestore(libs.WAConn, file)
+				err = whatsapp.WASessionRestore(whatsapp.WAConn, file)
 				if err != nil {
-					hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+					log.Println(log.LogLevelFatal, err.Error())
 				}
 
-				msisdn := strings.SplitN(libs.WAConn.Info.Wid, "@", 2)[0]
+				msisdn := strings.SplitN(whatsapp.WAConn.Info.Wid, "@", 2)[0]
 				masked := msisdn[0:len(msisdn)-3] + "xxx"
 
 				jid := msisdn + "@s.whatsapp.net"
 				tag := fmt.Sprintf("@%s", msisdn)
 
-				hlp.LogPrintln(hlp.LogLevelInfo, "logged in to whatsapp as "+masked)
+				log.Println(log.LogLevelInfo, "logged in to whatsapp as "+masked)
 
 				if test {
-					hlp.LogPrintln(hlp.LogLevelInfo, "sending test message to "+masked)
+					log.Println(log.LogLevelInfo, "sending test message to "+masked)
 
-					err = libs.WAMessageText(libs.WAConn, jid, "Welcome to Go WhatsApp CLI\nPlease Test Any Handler Here!", "", "")
+					err = whatsapp.WAMessageText(whatsapp.WAConn, jid, "Welcome to Go WhatsApp CLI\nPlease Test Any Handler Here!", "", "")
 					if err != nil {
-						hlp.LogPrintln(hlp.LogLevelError, err.Error())
+						log.Println(log.LogLevelError, err.Error())
 					}
 				}
 
 				<-time.After(time.Second)
-				libs.WAConn.AddHandler(&libs.WAHandler{
-					SessionConn:   libs.WAConn,
+				whatsapp.WAConn.AddHandler(&whatsapp.WAHandler{
+					SessionConn:   whatsapp.WAConn,
 					SessionJid:    jid,
 					SessionTag:    tag,
 					SessionFile:   file,
@@ -124,25 +126,25 @@ var Daemon = &cobra.Command{
 					ReconnectTime: reconnect,
 					IsTest:        test,
 				})
-			} else if !libs.WASessionExist(file) && libs.WAConn != nil {
-				_, _ = libs.WAConn.Disconnect()
-				libs.WAConn = nil
+			} else if !whatsapp.WASessionExist(file) && whatsapp.WAConn != nil {
+				_, _ = whatsapp.WAConn.Disconnect()
+				whatsapp.WAConn = nil
 
-				hlp.LogPrintln(hlp.LogLevelWarn, "disconnected from whatsapp, missing session file")
-			} else if !libs.WASessionExist(file) && libs.WAConn == nil {
-				hlp.LogPrintln(hlp.LogLevelWarn, "trying to login, waiting for session file")
+				log.Println(log.LogLevelWarn, "disconnected from whatsapp, missing session file")
+			} else if !whatsapp.WASessionExist(file) && whatsapp.WAConn == nil {
+				log.Println(log.LogLevelWarn, "trying to login, waiting for session file")
 			}
 
 			select {
 			case <-sig:
 				fmt.Println("")
 
-				if libs.WAConn != nil {
-					_, _ = libs.WAConn.Disconnect()
+				if whatsapp.WAConn != nil {
+					_, _ = whatsapp.WAConn.Disconnect()
 				}
-				libs.WAConn = nil
+				whatsapp.WAConn = nil
 
-				hlp.LogPrintln(hlp.LogLevelInfo, "terminating process")
+				log.Println(log.LogLevelInfo, "terminating process")
 				os.Exit(0)
 			case <-time.After(5 * time.Second):
 			}

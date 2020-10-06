@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/dimaskiddo/go-whatsapp-cli/ctl"
+	"github.com/dimaskiddo/go-whatsapp-cli/internal/cmd"
 )
 
 // Root Variable Structure
@@ -22,10 +22,10 @@ var r = &cobra.Command{
 // Init Function
 func init() {
 	// Initialize Command
-	r.AddCommand(ctl.Version)
-	r.AddCommand(ctl.Login)
-	r.AddCommand(ctl.Daemon)
-	r.AddCommand(ctl.Logout)
+	r.AddCommand(cmd.Version)
+	r.AddCommand(cmd.Daemon)
+	r.AddCommand(cmd.Login)
+	r.AddCommand(cmd.Logout)
 }
 
 // Main Function

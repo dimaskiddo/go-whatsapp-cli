@@ -1,10 +1,11 @@
-package ctl
+package cmd
 
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/dimaskiddo/go-whatsapp-cli/hlp"
-	"github.com/dimaskiddo/go-whatsapp-cli/hlp/libs"
+	"github.com/dimaskiddo/go-whatsapp-cli/pkg/env"
+	"github.com/dimaskiddo/go-whatsapp-cli/pkg/log"
+	"github.com/dimaskiddo/go-whatsapp-cli/pkg/whatsapp"
 )
 
 // Login Variable Structure
@@ -15,52 +16,52 @@ var Login = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 
-		clientVersionMajor, err := hlp.GetEnvInt("WHATSAPP_CLIENT_VERSION_MAJOR")
+		clientVersionMajor, err := env.GetEnvInt("WHATSAPP_CLIENT_VERSION_MAJOR")
 		if err != nil {
 			clientVersionMajor, err = cmd.Flags().GetInt("client-version-major")
 			if err != nil {
-				hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+				log.Println(log.LogLevelFatal, err.Error())
 			}
 		}
 
-		clientVersionMinor, err := hlp.GetEnvInt("WHATSAPP_CLIENT_VERSION_MINOR")
+		clientVersionMinor, err := env.GetEnvInt("WHATSAPP_CLIENT_VERSION_MINOR")
 		if err != nil {
 			clientVersionMinor, err = cmd.Flags().GetInt("client-version-minor")
 			if err != nil {
-				hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+				log.Println(log.LogLevelFatal, err.Error())
 			}
 		}
 
-		clientVersionBuild, err := hlp.GetEnvInt("WHATSAPP_CLIENT_VERSION_BUILD")
+		clientVersionBuild, err := env.GetEnvInt("WHATSAPP_CLIENT_VERSION_BUILD")
 		if err != nil {
 			clientVersionBuild, err = cmd.Flags().GetInt("client-version-build")
 			if err != nil {
-				hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+				log.Println(log.LogLevelFatal, err.Error())
 			}
 		}
 
-		timeout, err := hlp.GetEnvInt("WHATSAPP_TIMEOUT")
+		timeout, err := env.GetEnvInt("WHATSAPP_TIMEOUT")
 		if err != nil {
 			timeout, err = cmd.Flags().GetInt("timeout")
 			if err != nil {
-				hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+				log.Println(log.LogLevelFatal, err.Error())
 			}
 		}
 
-		file := "./share/session.gob"
+		file := "./config/stores/session.gob"
 
-		conn, info, err := libs.WASessionInit(clientVersionMajor, clientVersionMinor, clientVersionBuild, timeout)
+		conn, info, err := whatsapp.WASessionInit(clientVersionMajor, clientVersionMinor, clientVersionBuild, timeout)
 		if err != nil {
-			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+			log.Println(log.LogLevelFatal, err.Error())
 		}
-		hlp.LogPrintln(hlp.LogLevelInfo, info)
+		log.Println(log.LogLevelInfo, info)
 
-		err = libs.WASessionLogin(conn, file)
+		err = whatsapp.WASessionLogin(conn, file)
 		if err != nil {
-			hlp.LogPrintln(hlp.LogLevelFatal, err.Error())
+			log.Println(log.LogLevelFatal, err.Error())
 		}
 
-		hlp.LogPrintln(hlp.LogLevelInfo, "successfully login to whatsapp web")
+		log.Println(log.LogLevelInfo, "successfully login to whatsapp web")
 	},
 }
 

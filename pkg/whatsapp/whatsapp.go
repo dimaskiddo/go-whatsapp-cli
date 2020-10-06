@@ -1,4 +1,4 @@
-package libs
+package whatsapp
 
 import (
 	"encoding/gob"
@@ -15,7 +15,8 @@ import (
 	whatsapp "github.com/Rhymen/go-whatsapp"
 	waproto "github.com/Rhymen/go-whatsapp/binary/proto"
 
-	"github.com/dimaskiddo/go-whatsapp-cli/hlp"
+	"github.com/dimaskiddo/go-whatsapp-cli/pkg/log"
+	"github.com/dimaskiddo/go-whatsapp-cli/pkg/parser"
 )
 
 var WAConn *whatsapp.Conn
@@ -35,24 +36,24 @@ func (wah *WAHandler) HandleError(err error) {
 	_, eMatch := err.(*whatsapp.ErrConnectionFailed)
 	if eMatch {
 		if WASessionExist(wah.SessionFile) && wah.SessionConn != nil {
-			hlp.LogPrintln(hlp.LogLevelWarn, "connection closed unexpetedly, reconnecting after "+strconv.Itoa(wah.ReconnectTime)+" seconds")
+			log.Println(log.LogLevelWarn, "connection closed unexpetedly, reconnecting after "+strconv.Itoa(wah.ReconnectTime)+" seconds")
 
 			wah.SessionStart = uint64(time.Now().Unix())
 			<-time.After(time.Duration(wah.ReconnectTime) * time.Second)
 
 			err := wah.SessionConn.Restore()
 			if err != nil {
-				hlp.LogPrintln(hlp.LogLevelError, err.Error())
+				log.Println(log.LogLevelError, err.Error())
 			}
 		} else {
-			hlp.LogPrintln(hlp.LogLevelError, "connection closed unexpetedly")
+			log.Println(log.LogLevelError, "connection closed unexpetedly")
 		}
 	} else {
 		if strings.Contains(strings.ToLower(err.Error()), "server closed connection") {
 			return
 		}
 
-		hlp.LogPrintln(hlp.LogLevelError, err.Error())
+		log.Println(log.LogLevelError, err.Error())
 	}
 }
 
@@ -66,7 +67,7 @@ func (wah *WAHandler) HandleTextMessage(data whatsapp.TextMessage) {
 		return
 	}
 
-	resText, err := hlp.CMDExec(hlp.CMDList, strings.Split(msgText[1], " "), 0)
+	resText, err := parser.JSONExec(parser.JSONList, strings.Split(msgText[1], " "), 0)
 	if err != nil {
 		if len(resText) == 0 {
 			resText = []string{"Ouch, Got some error here while processing your request 🙈"}
@@ -74,13 +75,13 @@ func (wah *WAHandler) HandleTextMessage(data whatsapp.TextMessage) {
 			resText[0] = "Ouch, Got some error here while processing your request 🙈\n" + resText[0]
 		}
 
-		hlp.LogPrintln(hlp.LogLevelError, err.Error())
+		log.Println(log.LogLevelError, err.Error())
 	}
 
 	for i := 0; i < len(resText); i++ {
 		err := WAMessageText(wah.SessionConn, data.Info.RemoteJid, resText[i], data.Info.Id, data.Text)
 		if err != nil {
-			hlp.LogPrintln(hlp.LogLevelError, err.Error())
+			log.Println(log.LogLevelError, err.Error())
 		}
 	}
 }

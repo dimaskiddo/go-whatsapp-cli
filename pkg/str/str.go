@@ -1,4 +1,4 @@
-package hlp
+package str
 
 import (
 	"strings"

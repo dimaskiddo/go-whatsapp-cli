@@ -1,4 +1,4 @@
-package hlp
+package log
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var log *logrus.Logger
+var logger *logrus.Logger
 
 type logLevel string
 
@@ -21,34 +21,34 @@ const (
 )
 
 func init() {
-	log = logrus.New()
+	logger = logrus.New()
 
-	log.SetFormatter(&logrus.TextFormatter{
+	logger.SetFormatter(&logrus.TextFormatter{
 		ForceColors:   true,
 		FullTimestamp: true,
 	})
 
-	log.SetOutput(os.Stdout)
-	log.SetLevel(logrus.InfoLevel)
+	logger.SetOutput(os.Stdout)
+	logger.SetLevel(logrus.InfoLevel)
 }
 
-func LogPrintln(level logLevel, message interface{}) {
-	if log != nil {
+func Println(level logLevel, message interface{}) {
+	if logger != nil {
 		switch level {
 		case "panic":
-			log.Panicln(message)
+			logger.Panicln(message)
 		case "fatal":
-			log.Fatalln(message)
+			logger.Fatalln(message)
 		case "error":
-			log.Errorln(message)
+			logger.Errorln(message)
 		case "warn":
-			log.Warnln(message)
+			logger.Warnln(message)
 		case "debug":
-			log.Debugln(message)
+			logger.Debugln(message)
 		case "trace":
-			log.Traceln(message)
+			logger.Traceln(message)
 		default:
-			log.Infoln(message)
+			logger.Infoln(message)
 		}
 	}
 }

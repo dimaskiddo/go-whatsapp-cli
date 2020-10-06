@@ -1,4 +1,4 @@
-package hlp
+package parser
 
 import (
 	"bytes"
@@ -9,11 +9,13 @@ import (
 	"strings"
 
 	gabs "github.com/Jeffail/gabs/v2"
+
+	"github.com/dimaskiddo/go-whatsapp-cli/pkg/str"
 )
 
-var CMDList []*gabs.Container
+var JSONList []*gabs.Container
 
-func CMDParse(file string) ([]*gabs.Container, error) {
+func JSONParse(file string) ([]*gabs.Container, error) {
 	json, err := gabs.ParseJSONFile(file)
 	if err != nil {
 		return nil, err
@@ -24,7 +26,7 @@ func CMDParse(file string) ([]*gabs.Container, error) {
 	return cmds, nil
 }
 
-func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, error) {
+func JSONExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, error) {
 	if cmdList == nil {
 		return nil, errors.New("command list is empty")
 	}
@@ -59,7 +61,7 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 			if n < cmdLength && !cmd.ExistsP("cli.param") {
 				if cmd.ExistsP("data") {
 					cmds := cmd.S("data").Children()
-					return CMDExec(cmds, cmdArray, n+1)
+					return JSONExec(cmds, cmdArray, n+1)
 				}
 
 				return nil, errors.New("command not found")
@@ -108,7 +110,7 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 
 				cmdCURL := "curl " + cmdMethod + cmdHeader + cmdForm + cmdBody + cmdURL
 
-				cmdExecSplit := SplitWithEscapeN(cmdCURL, " ", -1, cmdTrim)
+				cmdExecSplit := str.SplitWithEscapeN(cmdCURL, " ", -1, cmdTrim)
 				execOutput, err := exec.Command(cmdExecSplit[0], cmdExecSplit[1:]...).Output()
 				if err != nil {
 					return nil, err
@@ -116,7 +118,7 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 
 				outReturn := []string{"There is nothing here, but the request is success 😆"}
 				if len(string(execOutput)) != 0 {
-					outReturn = SplitAfterCharN(string(execOutput), "\n", 2000, -1, cmdOutput, cmdTrim)
+					outReturn = str.SplitAfterCharN(string(execOutput), "\n", 2000, -1, cmdOutput, cmdTrim)
 				}
 
 				if cmd.ExistsP("message") {
@@ -163,7 +165,7 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 					cmdOutput = cmd.Path("cli.pretty").Data().(bool)
 				}
 
-				cmdExecSplit := SplitWithEscapeN(cmdExec, " ", -1, cmdTrim)
+				cmdExecSplit := str.SplitWithEscapeN(cmdExec, " ", -1, cmdTrim)
 				cmdRun := exec.Command(cmdExecSplit[0], cmdExecSplit[1:]...)
 
 				var cmdStdout bytes.Buffer
@@ -174,14 +176,14 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 
 				err := cmdRun.Run()
 				if err != nil {
-					outReturn := SplitAfterCharN(string(cmdStderr.String()), "\n", 2000, -1, cmdOutput, cmdTrim)
+					outReturn := str.SplitAfterCharN(string(cmdStderr.String()), "\n", 2000, -1, cmdOutput, cmdTrim)
 					return outReturn, err
 				}
 				execOutput := cmdStdout.String()
 
 				outReturn := []string{"There is nothing here, but the execution is success 😆"}
 				if len(string(execOutput)) != 0 {
-					outReturn = SplitAfterCharN(string(execOutput), "\n", 2000, -1, cmdOutput, cmdTrim)
+					outReturn = str.SplitAfterCharN(string(execOutput), "\n", 2000, -1, cmdOutput, cmdTrim)
 				}
 
 				if len(string(execOutput)) != 0 && cmd.ExistsP("message") {
@@ -199,7 +201,7 @@ func CMDExec(cmdList []*gabs.Container, cmdArray []string, n int) ([]string, err
 
 				outReturn := []string{"Sorry, i got nothing from the file 😔"}
 				if len(string(execOutput)) != 0 {
-					outReturn = SplitAfterCharN(string(execOutput), "\n", 2000, -1, false, true)
+					outReturn = str.SplitAfterCharN(string(execOutput), "\n", 2000, -1, false, true)
 				}
 
 				if len(string(execOutput)) != 0 && cmd.ExistsP("message") {
