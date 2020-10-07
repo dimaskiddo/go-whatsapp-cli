@@ -54,8 +54,6 @@ func (wah *WAHandler) HandleError(err error) {
 			} else {
 				wah.SessionStart = uint64(time.Now().Unix())
 			}
-		} else {
-			log.Println(log.LogLevelError, "connection closed unexpetedly, can't reconnect due to invalid session or connection")
 		}
 	} else {
 		log.Println(log.LogLevelError, err.Error())
@@ -258,8 +256,14 @@ func WASessionRestore(conn *whatsapp.Conn, file string) error {
 
 		session, err := WASessionLoad(file)
 		if err != nil {
-			_ = os.Remove(file)
 			_, _ = conn.Disconnect()
+
+			if WASessionExist(file) {
+				err = os.Remove(file)
+				if err != nil {
+					return err
+				}
+			}
 
 			return errors.New("session not valid, removing session file")
 		}
@@ -293,12 +297,19 @@ func WASessionLogout(conn *whatsapp.Conn, file string) error {
 			_, _ = conn.Disconnect()
 		}()
 
+		conn.RemoveHandlers()
+
 		err := conn.Logout()
 		if err != nil {
 			return err
 		}
 
-		_ = os.Remove(file)
+		if WASessionExist(file) {
+			err = os.Remove(file)
+			if err != nil {
+				return err
+			}
+		}
 	} else {
 		return errors.New("connection is not valid")
 	}
