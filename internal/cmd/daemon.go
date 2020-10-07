@@ -100,7 +100,7 @@ var Daemon = &cobra.Command{
 				}
 
 				msisdn := strings.SplitN(whatsapp.WAConn.Info.Wid, "@", 2)[0]
-				masked := msisdn[0:len(msisdn)-3] + "xxx"
+				masked := msisdn[0:len(msisdn)-4] + "xxxx"
 
 				jid := msisdn + "@s.whatsapp.net"
 				tag := fmt.Sprintf("@%s", msisdn)
