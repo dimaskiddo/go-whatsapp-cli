@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -33,26 +32,32 @@ type WAHandler struct {
 }
 
 func (wah *WAHandler) HandleError(err error) {
-	_, eMatch := err.(*whatsapp.ErrConnectionFailed)
-	if eMatch {
-		if WASessionExist(wah.SessionFile) && wah.SessionConn != nil {
-			log.Println(log.LogLevelWarn, "connection closed unexpetedly, reconnecting after "+strconv.Itoa(wah.ReconnectTime)+" seconds")
+	_, eMatchFailed := err.(*whatsapp.ErrConnectionFailed)
+	_, eMatchClosed := err.(*whatsapp.ErrConnectionClosed)
 
-			wah.SessionStart = uint64(time.Now().Unix())
+	if eMatchFailed || eMatchClosed {
+		if WASessionExist(wah.SessionFile) && wah.SessionConn != nil {
+			log.Println(log.LogLevelWarn, fmt.Sprintf("connection closed unexpetedly, reconnecting after %d seconds", wah.ReconnectTime))
+
 			<-time.After(time.Duration(wah.ReconnectTime) * time.Second)
 
 			err := wah.SessionConn.Restore()
 			if err != nil {
 				log.Println(log.LogLevelError, err.Error())
+
+				if WASessionExist(wah.SessionFile) {
+					err := os.Remove(wah.SessionFile)
+					if err != nil {
+						log.Println(log.LogLevelError, fmt.Sprintf("remove session file error, %s", err.Error()))
+					}
+				}
+			} else {
+				wah.SessionStart = uint64(time.Now().Unix())
 			}
 		} else {
-			log.Println(log.LogLevelError, "connection closed unexpetedly")
+			log.Println(log.LogLevelError, "connection closed unexpetedly, can't reconnect due to invalid session or connection")
 		}
 	} else {
-		if strings.Contains(strings.ToLower(err.Error()), "server closed connection") {
-			return
-		}
-
 		log.Println(log.LogLevelError, err.Error())
 	}
 }
