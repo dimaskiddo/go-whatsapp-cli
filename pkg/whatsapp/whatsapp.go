@@ -51,6 +51,11 @@ func (wah *WAHandler) HandleError(err error) {
 						log.Println(log.LogLevelError, fmt.Sprintf("remove session file error, %s", err.Error()))
 					}
 				}
+
+				_, _ = wah.SessionConn.Disconnect()
+				wah.SessionConn.RemoveHandlers()
+
+				WAConn = nil
 			} else {
 				wah.SessionStart = uint64(time.Now().Unix())
 			}
