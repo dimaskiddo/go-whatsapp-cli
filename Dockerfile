@@ -1,6 +1,6 @@
 # Builder Image
 # ---------------------------------------------------
-FROM dimaskiddo/alpine:go-1.12 AS go-builder
+FROM dimaskiddo/alpine:go-1.13 AS go-builder
 
 WORKDIR /usr/src/app
 
@@ -23,7 +23,7 @@ WORKDIR /usr/app/${SERVICE_NAME}
 COPY --from=go-builder /usr/src/app/config/ ./config
 COPY --from=go-builder /usr/src/app/main ./go-whatsapp-cli
 
-RUN chmod 777 config/stores
+RUN chmod 777 ./config/stores
 
-VOLUME ["/usr/app/config/stores"]
+VOLUME ["/usr/app/${SERVICE_NAME}/config/stores"]
 CMD ["go-whatsapp-cli","daemon"]
