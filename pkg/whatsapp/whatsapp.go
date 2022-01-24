@@ -353,7 +353,7 @@ func WAMessageText(conn *whatsapp.Conn, msgJID string, msgText string, msgQuoted
 		ctxQuotedInfo := whatsapp.ContextInfo{
 			QuotedMessageID: msgQuotedID,
 			QuotedMessage:   &msgQuotedProto,
-			Participant:     msgJID,
+			Participant:     rJID,
 		}
 
 		content.ContextInfo = ctxQuotedInfo
